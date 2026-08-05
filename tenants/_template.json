@@ -9,7 +9,8 @@
     "priceDisclaimer — חובה ב-dental/medical/aesthetics. מוצג אחרי כל תשובת מחיר.",
     "closedDates — סגירות ידועות בפורמט YYYY-MM-DD, מוזנות ידנית.",
     "escalation.notifyPhones — E.164 בלי + (למשל 972501234567).",
-    "calendar.provider — בדמו תמיד memory. אין שום קריאת רשת בדמו."
+    "calendar.provider — בדמו תמיד memory. אין שום קריאת רשת בדמו. בשרת החי: google + calendarId.",
+    "terminology — אופציונלי. מינוח לא-קליני: appointmentNoun (ברירת מחדל תור), serviceNoun (טיפול), והמגדר של כל אחד (m/f) להטיות. למשל פגישה/f + שיחה/f."
   ],
   "id": "template",
   "businessName": "מרפאת הדוגמה",

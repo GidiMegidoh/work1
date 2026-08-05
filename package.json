@@ -9,7 +9,9 @@
     "demo:new": "node src/cli/demo-new.js",
     "demo": "node src/cli/demo-serve.js",
     "demo:build": "node src/demo/build-site.js",
-    "verify": "node test/run-probes.js && node test/network-guard.js",
+    "server": "node server/index.js",
+    "check-calendar": "node server/cli/check-calendar.js",
+    "verify": "node test/run-probes.js && node test/network-guard.js && node test/live-infra.js",
     "test": "npm run verify"
   },
   "keywords": [

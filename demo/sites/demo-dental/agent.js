@@ -290,8 +290,24 @@
     phones.forEach(function (p) {
       if (!/^\d{10,15}$/.test(String(p))) errors.push('notifyPhones: "' + p + '" אינו E.164 בלי + (למשל 972501234567)');
     });
-    if (tenant.calendar && tenant.calendar.provider && tenant.calendar.provider !== 'memory') {
-      warnings.push('calendar.provider="' + tenant.calendar.provider + '" — בדמו נתמך רק memory, מתעלמים');
+    if (tenant.calendar && tenant.calendar.provider &&
+      ['memory', 'google'].indexOf(tenant.calendar.provider) === -1) {
+      warnings.push('calendar.provider="' + tenant.calendar.provider + '" לא מוכר (נתמכים: memory, google) — יטופל כ-memory');
+    }
+    if (tenant.calendar && tenant.calendar.provider === 'google' && !tenant.calendar.calendarId) {
+      warnings.push('calendar.provider=google בלי calendarId — השרת החי יסרב להפעיל את הטננט');
+    }
+    if (tenant.terminology != null) {
+      if (typeof tenant.terminology !== 'object' || Array.isArray(tenant.terminology)) {
+        errors.push('terminology חייב להיות אובייקט');
+      } else {
+        ['appointmentGender', 'serviceGender'].forEach(function (g) {
+          var v = tenant.terminology[g];
+          if (v != null && v !== 'm' && v !== 'f') {
+            errors.push('terminology.' + g + ' חייב להיות "m" או "f"');
+          }
+        });
+      }
     }
     if (!tenant.faq || tenant.faq.length < 3) warnings.push('פחות מ-3 שאלות FAQ — הסוכן יסלים הרבה');
     return { errors: errors, warnings: warnings };
@@ -339,16 +355,52 @@
     var maxSlots = booking.maxSlotsPerReply != null ? booking.maxSlotsPerReply : 6;
 
     var guardrail = GUARDRAILS[tenant.vertical];
+
+    // מינוח ניתן להגדרה: "תור"/"טיפול" הם ברירת המחדל הקלינית; טננט לא־קליני
+    // מגדיר terminology (למשל פגישה/שיחה). המגדר נדרש להטיות ("נקבע"/"נקבעה").
+    var TERM_DEFAULTS = {
+      appointmentNoun: 'תור', appointmentGender: 'm',
+      serviceNoun: 'טיפול', serviceGender: 'm',
+    };
+    var terms = {};
+    Object.keys(TERM_DEFAULTS).forEach(function (k) {
+      terms[k] = (tenant.terminology && tenant.terminology[k]) || TERM_DEFAULTS[k];
+    });
+    var A = terms.appointmentNoun;
+    /** הטיה לפי מגדר שם ה"תור": tA('נקבע','נקבעה') */
+    function tA(m, f) { return terms.appointmentGender === 'f' ? f : m; }
+    var S = terms.serviceNoun;
+    function tS(m, f) { return terms.serviceGender === 'f' ? f : m; }
+
+    // הרחבת אוצר המילים לשם ה"תור" של הטננט — "מתי הפגישה שלי?" חייב להתזהות
+    // כשאלת פרטי-תור גם כשהמינוח אינו "תור". צד הזיהוי בלבד; KW הגלובלי לא משתנה.
+    var kwMyBooking = KW.MY_BOOKING.slice();
+    var kwReschedule = KW.RESCHEDULE.slice();
+    if (A !== TERM_DEFAULTS.appointmentNoun) {
+      kwMyBooking.push('מתי ה' + A, 'ה' + A + ' שלי', 'איזו ' + A + ' יש לי',
+        'איזה ' + A + ' יש לי', 'פרטי ה' + A, 'יש לי ' + A);
+      kwReschedule.push('לשנות את ה' + A, 'לשנות ' + A,
+        'להעביר את ה' + A, 'להעביר ' + A);
+    }
+
     var extraBlocked = (tenant.guardrails && tenant.guardrails.extraBlockedTopics) || [];
     var extraTriggers = (tenant.escalation && tenant.escalation.extraTriggers) || [];
     var notifyPhones = (tenant.escalation && tenant.escalation.notifyPhones) || [];
 
     // ---- מצב בזיכרון בלבד (אין DB, אין רשת) ----
-    var sessions = {};   // sessionId → session
-    var bookings = [];   // כל התורים (active | cancelled)
-    var alerts = [];     // התראות לצוות (handoff / escalation / trigger)
-    var bookingSeq = 1000;
-    var alertSeq = 0;
+    // restoreState מחזיר מצב שיוצא ב-exportState — כך ריסטרט או טעינת טננט
+    // מחדש (SIGHUP) לא מאבדים שיחות ותורים.
+    var restored = opts.restoreState && typeof opts.restoreState === 'object'
+      ? JSON.parse(JSON.stringify(opts.restoreState)) : {};
+    var sessions = restored.sessions || {};   // sessionId → session
+    var bookings = restored.bookings || [];   // כל התורים (active | cancelled)
+    var alerts = restored.alerts || [];       // התראות לצוות (handoff / escalation / trigger)
+    var bookingSeq = restored.bookingSeq != null ? restored.bookingSeq : 1000;
+    var alertSeq = restored.alertSeq != null ? restored.alertSeq : 0;
+
+    // יומן חיצוני (Google) מוזרק כפונקציה סינכרונית שמחזירה טווחים תפוסים
+    // [{startMs,endMs}] מתוך מטמון שהשרת מרענן — הליבה נשארת טהורה ובלי רשת.
+    var externalBusyFn = typeof opts.getExternalBusy === 'function' ? opts.getExternalBusy : null;
 
     function getSession(id) {
       if (!sessions[id]) {
@@ -384,6 +436,12 @@
     }
 
     function overlapsBooked(startMs, endMs, excludeId) {
+      if (externalBusyFn) {
+        var ext = externalBusyFn() || [];
+        for (var e = 0; e < ext.length; e++) {
+          if (startMs < ext[e].endMs && endMs > ext[e].startMs) return true;
+        }
+      }
       var list = activeBookings(excludeId);
       for (var i = 0; i < list.length; i++) {
         var b = list[i];
@@ -467,6 +525,22 @@
       return alert;
     }
 
+    /** אירוע מובנה על תשובה — צרכן חיצוני (השרת החי) מסנכרן ממנו יומן Google. */
+    function bookingEvent(type, b, extra) {
+      var ev = {
+        type: type,
+        bookingId: b.id,
+        sessionId: b.sessionId,
+        serviceId: b.serviceId,
+        serviceName: b.serviceName,
+        durationMinutes: b.durationMinutes,
+        slotIso: b.slotIso,
+        customerName: b.customerName,
+      };
+      if (extra) for (var k in extra) ev[k] = extra[k];
+      return ev;
+    }
+
     // ------------------------------------------------------------------
     //  בניית תשובות
     // ------------------------------------------------------------------
@@ -477,9 +551,13 @@
       return r;
     }
 
+    function bookButton() {
+      return { id: 'menu:book', title: 'קביעת ' + A + ' 📅' };
+    }
+
     function menuButtons() {
       return [
-        { id: 'menu:book', title: 'קביעת תור 📅' },
+        bookButton(),
         { id: 'menu:prices', title: 'מחירון 💰' },
         { id: 'menu:hours', title: 'שעות פעילות 🕘' },
       ];
@@ -521,7 +599,7 @@
         var buttons = tenant.services.slice(0, 6).map(function (s) {
           return { id: 'svc:' + s.id, title: s.name };
         });
-        return reply('בשמחה! לאיזה טיפול לקבוע תור?', buttons);
+        return reply('בשמחה! ' + tS('לאיזה', 'לאיזו') + ' ' + S + ' לקבוע ' + A + '?', buttons);
       }
       session.serviceId = serviceId || tenant.services[0].id;
       return offerSlots(session, null);
@@ -556,7 +634,7 @@
       session.step = session.ctx === 'reschedule' ? STEPS.AWAITING_RESLOT : STEPS.AWAITING_SLOT;
 
       var head = session.ctx === 'reschedule'
-        ? 'לאיזה מועד להעביר את התור?'
+        ? 'לאיזה מועד להעביר את ה' + A + '?'
         : 'אלו המועדים הקרובים ל' + svc.name + ' (' + svc.durationMinutes + ' דק\'):';
       var text = (prefix ? prefix + '\n\n' : '') + head + '\nאפשר ללחוץ על מועד או להשיב במספר.';
 
@@ -572,13 +650,13 @@
       if (session.ctx === 'reschedule') {
         session.step = STEPS.AWAITING_RECONFIRM;
         return reply(
-          'להעביר את התור ל' + slotLongLabel(iso) + '?',
+          'להעביר את ה' + A + ' ל' + slotLongLabel(iso) + '?',
           [{ id: 'reconfirm', title: 'כן, להעביר ✔' }, { id: 'keep', title: 'לא, להשאיר' }]
         );
       }
       if (!session.name) {
         session.step = STEPS.AWAITING_NAME;
-        return reply('מעולה, שמרתי את ' + slotLongLabel(iso) + '. על שם מי לרשום את התור? (שם מלא)');
+        return reply('מעולה, שמרתי את ' + slotLongLabel(iso) + '. על שם מי לרשום את ה' + A + '? (שם מלא)');
       }
       return nextQualOrConfirm(session);
     }
@@ -605,7 +683,7 @@
         '• ' + svc.name + '\n' +
         '• ' + slotLongLabel(session.slotIso) + '\n' +
         '• על שם: ' + session.name + '\n' +
-        'לאשר את התור?',
+        'לאשר את ה' + A + '?',
         [
           { id: 'confirm', title: 'אישור ✔' },
           { id: 'changeslot', title: 'מועד אחר' },
@@ -647,14 +725,14 @@
       bookings.push(b);
       session.step = STEPS.IDLE;
       session.ctx = null;
-      var text = '✅ התור נקבע!\n' +
+      var text = '✅ ה' + A + ' ' + tA('נקבע', 'נקבעה') + '!\n' +
         '• ' + svc.name + '\n' +
         '• ' + slotLongLabel(b.slotIso) + '\n' +
         '• על שם: ' + b.customerName + '\n' +
         '• מס\' אסמכתא: ' + b.id;
       if (svc.prep) text += '\n\nלתשומת לבך: ' + svc.prep;
-      text += '\n\nאפשר לכתוב לי "לשנות תור" או "לבטל תור" בכל שלב.';
-      return reply(text);
+      text += '\n\nאפשר לכתוב לי "לשנות ' + A + '" או "לבטל ' + A + '" בכל שלב.';
+      return reply(text, [], { event: bookingEvent('booking_created', b) });
     }
 
     function latestActiveBooking(session) {
@@ -669,15 +747,16 @@
     function startReschedule(session) {
       var b = latestActiveBooking(session);
       if (!b) {
-        return reply('לא מצאתי תור פעיל על השיחה הזאת. רוצה לקבוע תור חדש?',
-          [{ id: 'menu:book', title: 'קביעת תור 📅' }]);
+        return reply('לא מצאתי ' + A + ' ' + tA('פעיל', 'פעילה') + ' על השיחה הזאת. ' +
+          'רוצה לקבוע ' + A + ' ' + tA('חדש', 'חדשה') + '?',
+          [bookButton()]);
       }
       session.ctx = 'reschedule';
       session.rescheduleBookingId = b.id;
       session.serviceId = b.serviceId;
       session.slotOffset = 0;
       return offerSlots(session,
-        'אין בעיה, נעביר את התור (' + b.serviceName + ', ' + slotLongLabel(b.slotIso) + ').');
+        'אין בעיה, נעביר את ה' + A + ' (' + b.serviceName + ', ' + slotLongLabel(b.slotIso) + ').');
     }
 
     function finalizeReschedule(session) {
@@ -687,33 +766,37 @@
       }
       if (!b || b.status !== 'active') {
         session.step = STEPS.IDLE; session.ctx = null;
-        return reply('התור המקורי כבר לא פעיל. רוצה לקבוע תור חדש?',
-          [{ id: 'menu:book', title: 'קביעת תור 📅' }]);
+        return reply('ה' + A + ' ' + tA('המקורי', 'המקורית') + ' כבר לא ' + tA('פעיל', 'פעילה') + '. ' +
+          'רוצה לקבוע ' + A + ' ' + tA('חדש', 'חדשה') + '?',
+          [bookButton()]);
       }
       if (!slotStillFree(session, b.id)) return slotTakenReoffer(session);
-      var oldLabel = slotLongLabel(b.slotIso);
+      var oldIso = b.slotIso;
+      var oldLabel = slotLongLabel(oldIso);
       b.slotIso = session.slotIso;
       b.updatedAt = toIsoLocal(new Date(nowFn()));
       session.step = STEPS.IDLE;
       session.ctx = null;
       session.rescheduleBookingId = null;
       return reply(
-        '🔁 התור עודכן!\n' +
+        '🔁 ה' + A + ' ' + tA('עודכן', 'עודכנה') + '!\n' +
         '• במקום ' + oldLabel + '\n' +
-        '• נקבע ל' + slotLongLabel(b.slotIso) + '\n' +
-        '• מס\' אסמכתא: ' + b.id
+        '• ' + tA('נקבע', 'נקבעה') + ' ל' + slotLongLabel(b.slotIso) + '\n' +
+        '• מס\' אסמכתא: ' + b.id,
+        [],
+        { event: bookingEvent('booking_rescheduled', b, { previousSlotIso: oldIso }) }
       );
     }
 
     function startCancel(session) {
       var b = latestActiveBooking(session);
       if (!b) {
-        return reply('לא מצאתי תור פעיל לביטול. אפשר לעזור במשהו אחר?', menuButtons());
+        return reply('לא מצאתי ' + A + ' ' + tA('פעיל', 'פעילה') + ' לביטול. אפשר לעזור במשהו אחר?', menuButtons());
       }
       session.step = STEPS.AWAITING_CANCEL_CONFIRM;
       session.rescheduleBookingId = b.id;
       return reply(
-        'לבטל את התור?\n• ' + b.serviceName + '\n• ' + slotLongLabel(b.slotIso) + '\n• מס\' אסמכתא: ' + b.id,
+        'לבטל את ה' + A + '?\n• ' + b.serviceName + '\n• ' + slotLongLabel(b.slotIso) + '\n• מס\' אסמכתא: ' + b.id,
         [{ id: 'cancel:confirm', title: 'כן, לבטל' }, { id: 'cancel:keep', title: 'לא, להשאיר' }]
       );
     }
@@ -725,12 +808,12 @@
       }
       session.step = STEPS.IDLE;
       session.rescheduleBookingId = null;
-      if (!b || b.status !== 'active') return reply('התור כבר לא פעיל.');
+      if (!b || b.status !== 'active') return reply('ה' + A + ' כבר לא ' + tA('פעיל', 'פעילה') + '.');
       b.status = 'cancelled';
       b.cancelledAt = toIsoLocal(new Date(nowFn()));
-      var text = '❌ התור בוטל.\n• ' + b.serviceName + '\n• ' + slotLongLabel(b.slotIso);
-      text += '\n\nאם מתחשק מועד חדש — אפשר לכתוב "לקבוע תור" בכל רגע. 🙂';
-      return reply(text);
+      var text = '❌ ה' + A + ' ' + tA('בוטל', 'בוטלה') + '.\n• ' + b.serviceName + '\n• ' + slotLongLabel(b.slotIso);
+      text += '\n\nאם מתחשק מועד חדש — אפשר לכתוב "לקבוע ' + A + '" בכל רגע. 🙂';
+      return reply(text, [], { event: bookingEvent('booking_cancelled', b) });
     }
 
     function abortFlow(session) {
@@ -746,9 +829,17 @@
     // ------------------------------------------------------------------
 
     function guardrailReply(session) {
-      var decline = guardrail.decline;
+      // בוורטיקל general אין משפט סירוב מובנה (decline=null) — בונים את הפתיח
+      // מהחלקים הקיימים בלבד, ואם אין אף אחד נופלים לניסוח כללי. כך
+      // extraBlockedTopics לעולם לא מדפיס "null" ללקוח.
+      var parts = [];
+      if (guardrail.decline) parts.push(guardrail.decline);
       if (tenant.guardrails && tenant.guardrails.extraDecline) {
-        decline += '\n' + tenant.guardrails.extraDecline;
+        parts.push(tenant.guardrails.extraDecline);
+      }
+      if (!parts.length) {
+        parts.push('את הנושא הזה אני משאיר לצוות של ' + tenant.businessName +
+          ' — אני לא עונה עליו בצ\'אט.');
       }
       var svc = defaultService();
       session.ctx = 'book';
@@ -756,7 +847,7 @@
       session.slotOffset = 0;
       var offerHead = 'מה שכן — אשמח לקבוע לך ' + svc.name + ' אצל ' + tenant.businessName +
         ', ושם יטפלו בזה כמו שצריך.';
-      return offerSlots(session, decline + '\n' + offerHead);
+      return offerSlots(session, parts.join('\n') + '\n' + offerHead);
     }
 
     function handoffReply(session, sourceText) {
@@ -855,8 +946,8 @@
       if (session.step === STEPS.HUMAN) return humanModeReply(session);
 
       if (id === 'menu:book') return startBooking(session, null);
-      if (id === 'menu:prices') return reply(priceListText(), [{ id: 'menu:book', title: 'קביעת תור 📅' }]);
-      if (id === 'menu:hours') return reply(hoursText(), [{ id: 'menu:book', title: 'קביעת תור 📅' }]);
+      if (id === 'menu:prices') return reply(priceListText(), [bookButton()]);
+      if (id === 'menu:hours') return reply(hoursText(), [bookButton()]);
       if (id === 'handoff') return handoffReply(session, rawTitle || 'בקשת נציג (כפתור)');
       if (id === 'reschedule:start') return startReschedule(session);
       if (id === 'cancel:start') return startCancel(session);
@@ -898,12 +989,12 @@
       if (id === 'reconfirm' && session.step === STEPS.AWAITING_RECONFIRM) return finalizeReschedule(session);
       if (id === 'keep' && session.step === STEPS.AWAITING_RECONFIRM) {
         session.step = STEPS.IDLE; session.ctx = null;
-        return reply('בסדר גמור, התור נשאר במועד המקורי. 🙂', menuButtons());
+        return reply('בסדר גמור, ה' + A + ' ' + tA('נשאר', 'נשארה') + ' במועד המקורי. 🙂', menuButtons());
       }
       if (id === 'cancel:confirm' && session.step === STEPS.AWAITING_CANCEL_CONFIRM) return finalizeCancel(session);
       if (id === 'cancel:keep' && session.step === STEPS.AWAITING_CANCEL_CONFIRM) {
         session.step = STEPS.IDLE;
-        return reply('מעולה, התור נשאר על כנו. 🙂', menuButtons());
+        return reply('מעולה, ה' + A + ' ' + tA('נשאר על כנו', 'נשארה על כנה') + '. 🙂', menuButtons());
       }
       return fallbackForStep(session);
     }
@@ -919,22 +1010,22 @@
     function fallbackForStep(session) {
       switch (session.step) {
         case STEPS.AWAITING_SERVICE:
-          return reply('לא זיהיתי את הטיפול. אפשר לבחור מהכפתורים:',
+          return reply('לא זיהיתי את ה' + S + '. אפשר לבחור מהכפתורים:',
             tenant.services.slice(0, 6).map(function (s) { return { id: 'svc:' + s.id, title: s.name }; }));
         case STEPS.AWAITING_SLOT:
         case STEPS.AWAITING_RESLOT:
           return offerSlots(session, 'לא זיהיתי את המועד, הנה האפשרויות שוב:');
         case STEPS.AWAITING_NAME:
-          return reply('אשמח לשם מלא (לפחות 2 תווים) כדי לרשום את התור. 🙏');
+          return reply('אשמח לשם מלא (לפחות 2 תווים) כדי לרשום את ה' + A + '. 🙏');
         case STEPS.AWAITING_QUAL:
           return nextQualOrConfirm(session);
         case STEPS.AWAITING_CONFIRM:
           return confirmSummary(session);
         case STEPS.AWAITING_RECONFIRM:
-          return reply('להעביר את התור ל' + slotLongLabel(session.slotIso) + '?',
+          return reply('להעביר את ה' + A + ' ל' + slotLongLabel(session.slotIso) + '?',
             [{ id: 'reconfirm', title: 'כן, להעביר ✔' }, { id: 'keep', title: 'לא, להשאיר' }]);
         case STEPS.AWAITING_CANCEL_CONFIRM:
-          return reply('לבטל את התור? אפשר להשיב כן או לא.',
+          return reply('לבטל את ה' + A + '? אפשר להשיב כן או לא.',
             [{ id: 'cancel:confirm', title: 'כן, לבטל' }, { id: 'cancel:keep', title: 'לא, להשאיר' }]);
         default:
           return null;
@@ -974,7 +1065,7 @@
 
     function hasStrongIntent(norm, tokens) {
       return !!(textHasAny(norm, tokens, KW.PRICE) || textHasAny(norm, tokens, KW.CANCEL) ||
-        textHasAny(norm, tokens, KW.RESCHEDULE) || textHasAny(norm, tokens, KW.HOURS) ||
+        textHasAny(norm, tokens, kwReschedule) || textHasAny(norm, tokens, KW.HOURS) ||
         textHasAny(norm, tokens, KW.BOOK));
     }
 
@@ -1001,7 +1092,7 @@
           var soloYesNo = tokens.length === 1 &&
             (KW.YES.indexOf(norm) !== -1 || KW.NO.indexOf(norm) !== -1);
           if (name.length < 2 || /^\d+$/.test(name) || soloYesNo) {
-            return reply('אשמח לשם מלא (לפחות 2 תווים) כדי לרשום את התור. 🙏');
+            return reply('אשמח לשם מלא (לפחות 2 תווים) כדי לרשום את ה' + A + '. 🙏');
           }
           session.name = name;
           return nextQualOrConfirm(session);
@@ -1021,7 +1112,7 @@
         }
         case STEPS.AWAITING_CONFIRM: {
           if (textHasAny(norm, tokens, KW.YES)) return finalizeBooking(session);
-          if (textHasAny(norm, tokens, KW.NO) || textHasAny(norm, tokens, KW.RESCHEDULE)) {
+          if (textHasAny(norm, tokens, KW.NO) || textHasAny(norm, tokens, kwReschedule)) {
             session.step = STEPS.AWAITING_SLOT;
             return offerSlots(session, 'אין בעיה, נבחר מועד אחר:');
           }
@@ -1031,7 +1122,7 @@
           if (textHasAny(norm, tokens, KW.YES)) return finalizeReschedule(session);
           if (textHasAny(norm, tokens, KW.NO)) {
             session.step = STEPS.IDLE; session.ctx = null;
-            return reply('בסדר גמור, התור נשאר במועד המקורי. 🙂', menuButtons());
+            return reply('בסדר גמור, ה' + A + ' ' + tA('נשאר', 'נשארה') + ' במועד המקורי. 🙂', menuButtons());
           }
           return null;
         }
@@ -1039,7 +1130,7 @@
           if (textHasAny(norm, tokens, KW.YES)) return finalizeCancel(session);
           if (textHasAny(norm, tokens, KW.NO)) {
             session.step = STEPS.IDLE;
-            return reply('מעולה, התור נשאר על כנו. 🙂', menuButtons());
+            return reply('מעולה, ה' + A + ' ' + tA('נשאר על כנו', 'נשארה על כנה') + '. 🙂', menuButtons());
           }
           return null;
         }
@@ -1181,18 +1272,18 @@
       if (textHasAny(norm, tokens, KW.PRICE)) {
         if (svc && svc.price != null) {
           var text = svc.name + ' — ' + formatPrice(svc) +
-            ' (משך הטיפול כ-' + svc.durationMinutes + ' דק\').';
+            ' (משך ה' + S + ' כ-' + svc.durationMinutes + ' דק\').';
           if (tenant.priceDisclaimer) text += '\n' + tenant.priceDisclaimer;
           return reply(text, [
             { id: 'book:svc:' + svc.id, title: 'לקבוע ' + svc.name },
             { id: 'menu:prices', title: 'כל המחירון 💰' },
           ]);
         }
-        return reply(priceListText(), [{ id: 'menu:book', title: 'קביעת תור 📅' }]);
+        return reply(priceListText(), [bookButton()]);
       }
 
       // שינוי מועד לפני ביטול לפני קביעה (חפיפת מילים)
-      if (textHasAny(norm, tokens, KW.RESCHEDULE) && session.step === STEPS.IDLE) {
+      if (textHasAny(norm, tokens, kwReschedule) && session.step === STEPS.IDLE) {
         if (latestActiveBooking(session) || !textHasAny(norm, tokens, KW.BOOK)) {
           return startReschedule(session);
         }
@@ -1206,20 +1297,21 @@
         return startCancel(session);
       }
       // "מתי התור שלי?" — פרטי התור הקיים, לא פתיחת הזמנה חדשה
-      if (textHasAny(norm, tokens, KW.MY_BOOKING)) {
+      if (textHasAny(norm, tokens, kwMyBooking)) {
         var mine = latestActiveBooking(session);
         if (mine) {
           return reply(
-            'התור הקרוב שלך:\n• ' + mine.serviceName + '\n• ' + slotLongLabel(mine.slotIso) +
+            'ה' + A + ' ' + tA('הקרוב', 'הקרובה') + ' שלך:\n• ' + mine.serviceName + '\n• ' + slotLongLabel(mine.slotIso) +
             '\n• על שם: ' + mine.customerName + '\n• מס\' אסמכתא: ' + mine.id,
             [
               { id: 'reschedule:start', title: 'לשנות מועד 🔁' },
-              { id: 'cancel:start', title: 'לבטל תור ❌' },
+              { id: 'cancel:start', title: 'לבטל ' + A + ' ❌' },
             ]
           );
         }
-        return reply('לא מצאתי תור פעיל על השיחה הזאת. רוצה לקבוע אחד?',
-          [{ id: 'menu:book', title: 'קביעת תור 📅' }]);
+        return reply('לא מצאתי ' + A + ' ' + tA('פעיל', 'פעילה') + ' על השיחה הזאת. ' +
+          'רוצה לקבוע ' + tA('אחד', 'אחת') + '?',
+          [bookButton()]);
       }
 
       if (textHasAny(norm, tokens, KW.BOOK)) {
@@ -1227,18 +1319,18 @@
       }
 
       if (textHasAny(norm, tokens, KW.HOURS)) {
-        return reply(hoursText(), [{ id: 'menu:book', title: 'קביעת תור 📅' }]);
+        return reply(hoursText(), [bookButton()]);
       }
 
       var faq = faqMatch(norm, tokens);
       if (faq) {
         return reply(faq.answer, session.step === STEPS.IDLE
-          ? [{ id: 'menu:book', title: 'קביעת תור 📅' }] : []);
+          ? [bookButton()] : []);
       }
 
       // שאלה על שירות בלי מילת מחיר ("יש לכם הלבנה?")
       if (svc && session.step === STEPS.IDLE) {
-        var t = svc.name + ' — בהחלט! משך הטיפול כ-' + svc.durationMinutes + ' דק\'';
+        var t = svc.name + ' — בהחלט! משך ה' + S + ' כ-' + svc.durationMinutes + ' דק\'';
         if (svc.price != null) t += ', עלות ' + formatPrice(svc);
         t += '.';
         if (tenant.priceDisclaimer && svc.price != null) t += '\n' + tenant.priceDisclaimer;
@@ -1249,7 +1341,7 @@
         session.greeted = true;
         return reply(
           'שלום! 👋 הגעת ל' + tenant.businessName + '.\n' +
-          'אפשר לקבוע תור, לברר מחירים ושעות פעילות, או לשאול אותי כל דבר על ' +
+          'אפשר לקבוע ' + A + ', לברר מחירים ושעות פעילות, או לשאול אותי כל דבר על ' +
           tenant.businessName + '. איך אפשר לעזור?',
           menuButtons()
         );
@@ -1293,10 +1385,22 @@
       };
     }
 
+    /** צילום מלא של המצב — נטען חזרה דרך opts.restoreState (ריסטרט / SIGHUP). */
+    function exportState() {
+      return JSON.parse(JSON.stringify({
+        sessions: sessions,
+        bookings: bookings,
+        alerts: alerts,
+        bookingSeq: bookingSeq,
+        alertSeq: alertSeq,
+      }));
+    }
+
     return {
       tenant: tenant,
       handleMessage: handleMessage,
       getState: getState,
+      exportState: exportState,
       listOpenSlots: listOpenSlots,
       validation: check,
     };

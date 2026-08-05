@@ -27,6 +27,12 @@
   "vertical": "general",
   "language": "he",
   "timezone": "Asia/Jerusalem",
+  "terminology": {
+    "appointmentNoun": "פגישה",
+    "appointmentGender": "f",
+    "serviceNoun": "שיחה",
+    "serviceGender": "f"
+  },
   "extraInfo": {
     "address": "אנחנו עובדים אונליין — שיחת הדמו מתקיימת בוואטסאפ, בטלפון או בזום, איך שנוח לך.",
     "phone": "052-4608284",

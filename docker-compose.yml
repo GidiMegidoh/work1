@@ -1,0 +1,33 @@
+# שרת שיבוץ החי.
+#
+#   docker compose up -d --build          הרמה
+#   docker compose kill -s HUP shibutz    טעינת טננטים מחדש בלי להפיל חיבורים
+#   docker compose logs -f shibutz        לוגים (כולל DRY-RUN של הודעות יוצאות)
+#
+# כל הסודות ב-.env (לא בקומיט!) — ראו .env.example לרשימה המלאה.
+
+services:
+  shibutz:
+    build: .
+    container_name: shibutz
+    restart: unless-stopped
+    env_file:
+      # required:false — גם בלי .env השרת עולה (במצב DRY-RUN, בלי שליחה)
+      - path: .env
+        required: false
+    environment:
+      # חובה: זהה ל-timezone של הטננטים החיים, אחרת השרת יסרב להפעיל אותם
+      TZ: Asia/Jerusalem
+      PORT: "8080"
+    ports:
+      - "${PORT:-8080}:8080"
+    volumes:
+      # עריכת טננט בדיסק + kill -s HUP = עדכון חי, בלי build ובלי downtime
+      - ./tenants:/app/tenants
+      # מצב שיחות ותורים — שורד ריסטרט ועדכוני גרסה
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
