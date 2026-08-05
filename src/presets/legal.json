@@ -1,0 +1,46 @@
+{
+  "id": "preset-legal",
+  "businessName": "משרד עו\"ד שרון ושות'",
+  "vertical": "legal",
+  "language": "he",
+  "timezone": "Asia/Jerusalem",
+  "extraInfo": {
+    "address": "מגדל המוזיאון, רחוב ברקוביץ' 4, קומה 15, תל אביב. חניון בבניין (בתשלום).",
+    "phone": "03-5553311",
+    "paymentMethods": "העברה בנקאית, אשראי והמחאות.",
+    "cancellationPolicy": "ביטול פגישה עד 24 שעות מראש — ללא חיוב.",
+    "insurance": null
+  },
+  "hours": {
+    "sun": [["09:00", "18:00"]],
+    "mon": [["09:00", "18:00"]],
+    "tue": [["09:00", "18:00"]],
+    "wed": [["09:00", "18:00"]],
+    "thu": [["09:00", "16:00"]],
+    "fri": [],
+    "sat": []
+  },
+  "closedDates": [],
+  "services": [
+    { "id": "first-consult", "name": "פגישת ייעוץ ראשונה", "aliases": ["ייעוץ", "יעוץ", "פגישה ראשונה", "התייעצות"], "durationMinutes": 45, "price": 450, "prep": "מומלץ להביא את כל המסמכים הרלוונטיים לפגישה." },
+    { "id": "will", "name": "עריכת צוואה", "aliases": ["צוואה", "צוואות", "ירושה"], "durationMinutes": 60, "price": 1800, "prep": null },
+    { "id": "realestate", "name": "ליווי עסקת נדל\"ן", "aliases": ["נדלן", "נדל\"ן", "דירה", "מקרקעין", "חוזה דירה"], "durationMinutes": 60, "price": 6000, "prep": null },
+    { "id": "labor", "name": "ייעוץ דיני עבודה", "aliases": ["עבודה", "פיטורים", "שימוע", "זכויות"], "durationMinutes": 45, "price": 550, "prep": null }
+  ],
+  "priceDisclaimer": "שכר הטרחה הסופי נקבע לאחר פגישת היכרות ובהתאם למורכבות העניין.",
+  "booking": { "minLeadTimeMinutes": 240, "bufferMinutes": 15, "horizonDays": 14, "maxSlotsPerReply": 6, "defaultServiceId": "first-consult" },
+  "calendar": { "provider": "memory", "calendarId": null, "additionalBusyCalendars": [] },
+  "whatsapp": { "phoneNumberId": null },
+  "faq": [
+    { "q": "איך מגיעים ואיפה חונים?", "answer": "מגדל המוזיאון, ברקוביץ' 4, קומה 15. חניון בבניין — קבלו החתמה בקבלה ותקבלו הנחה.", "tags": ["חניה", "חנייה", "חניון", "להגיע", "הגעה", "כתובת", "איפה", "מיקום"] },
+    { "q": "מה להביא לפגישת ייעוץ?", "answer": "כל מסמך שקשור לעניין: חוזים, התכתבויות, תלושים או צילומי מסך. עדיף להביא יותר מדי מאשר פחות מדי.", "tags": ["להביא", "מסמכים", "מסמך", "חוזה", "הכנה"] },
+    { "q": "אילו אמצעי תשלום מקבלים?", "answer": "העברה בנקאית, כרטיסי אשראי והמחאות. שכר טרחה נקבע מראש בהסכם מסודר.", "tags": ["תשלום", "תשלומים", "אשראי", "העברה", "שכר טרחה"] },
+    { "q": "האם הפגישה הראשונה מחייבת?", "answer": "לא. פגישת הייעוץ הראשונה עומדת בפני עצמה — ממשיכים רק אם החלטתם שאנחנו הכתובת הנכונה.", "tags": ["מחייבת", "התחייבות", "ראשונה"] }
+  ],
+  "qualification": [
+    { "id": "topic", "question": "באיזה תחום העניין? (נדל\"ן, ירושה וצוואות, דיני עבודה, או אחר)", "required": true, "weight": 2, "highValueAnswers": ["נדלן", "נדל\"ן", "ירושה", "צוואה", "עסקה"] },
+    { "id": "timing", "question": "עד כמה העניין דחוף?", "required": false, "weight": 1, "highValueAnswers": ["דחוף", "מאוד"] }
+  ],
+  "guardrails": { "extraDecline": null, "extraBlockedTopics": [] },
+  "escalation": { "notifyPhones": ["972501234567"], "extraTriggers": ["תלונה", "בית משפט מחר", "מעצר"] }
+}

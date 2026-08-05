@@ -1,0 +1,46 @@
+{
+  "id": "preset-aesthetics",
+  "businessName": "קליניקת גלואו",
+  "vertical": "aesthetics",
+  "language": "he",
+  "timezone": "Asia/Jerusalem",
+  "extraInfo": {
+    "address": "רחוב דיזנגוף 210, קומה 1, תל אביב. חניון גינדי מעבר לכביש.",
+    "phone": "03-5557890",
+    "paymentMethods": "אשראי (עד 10 תשלומים), ביט ומזומן.",
+    "cancellationPolicy": "ביטול עד 48 שעות מראש — ללא חיוב. פחות מזה — דמי ביטול 100 ₪.",
+    "insurance": null
+  },
+  "hours": {
+    "sun": [["10:00", "20:00"]],
+    "mon": [["10:00", "20:00"]],
+    "tue": [["10:00", "20:00"]],
+    "wed": [["10:00", "20:00"]],
+    "thu": [["10:00", "20:00"]],
+    "fri": [["09:00", "13:00"]],
+    "sat": []
+  },
+  "closedDates": [],
+  "services": [
+    { "id": "consult", "name": "פגישת ייעוץ והתאמה", "aliases": ["ייעוץ", "יעוץ", "התאמה", "פגישת היכרות"], "durationMinutes": 30, "price": 150, "prep": null },
+    { "id": "facial", "name": "טיפול פנים קלאסי", "aliases": ["פנים", "טיפול פנים", "פילינג"], "durationMinutes": 60, "price": 450, "prep": "מומלץ להגיע ללא איפור." },
+    { "id": "botox", "name": "הזרקת בוטוקס", "aliases": ["בוטוקס", "הזרקה", "הזרקות"], "durationMinutes": 30, "price": 1200, "prep": "ההזרקה מתבצעת רק לאחר פגישת ייעוץ והתאמה." },
+    { "id": "filler", "name": "חומצה היאלורונית", "aliases": ["חומצה", "היאלורונית", "מילוי", "שפתיים"], "durationMinutes": 45, "price": 1500, "prep": "ההזרקה מתבצעת רק לאחר פגישת ייעוץ והתאמה." }
+  ],
+  "priceDisclaimer": "המחירים הם נקודת פתיחה — התוכנית והעלות הסופית נקבעות רק בפגישת ייעוץ והתאמה אישית.",
+  "booking": { "minLeadTimeMinutes": 180, "bufferMinutes": 15, "horizonDays": 12, "maxSlotsPerReply": 6, "defaultServiceId": "consult" },
+  "calendar": { "provider": "memory", "calendarId": null, "additionalBusyCalendars": [] },
+  "whatsapp": { "phoneNumberId": null },
+  "faq": [
+    { "q": "איך מגיעים ואיפה חונים?", "answer": "דיזנגוף 210, קומה 1. הכי נוח בחניון גינדי מעבר לכביש — נותנים החזר של שעה ללקוחות.", "tags": ["חניה", "חנייה", "חניון", "להגיע", "הגעה", "כתובת", "איפה", "מיקום"] },
+    { "q": "אילו אמצעי תשלום מקבלים?", "answer": "אשראי עד 10 תשלומים, ביט ומזומן.", "tags": ["תשלום", "תשלומים", "אשראי", "ביט", "מזומן"] },
+    { "q": "מה מדיניות הביטולים?", "answer": "אפשר לבטל או להזיז עד 48 שעות מראש ללא חיוב. פחות מזה — דמי ביטול של 100 ₪.", "tags": ["מדיניות", "ביטולים", "קנס", "חיוב"] },
+    { "q": "כמה זמן מחזיקות התוצאות?", "answer": "משך התוצאה משתנה מטיפול לטיפול ומאדם לאדם — בפגישת הייעוץ נותנים לך תמונה מלאה ומותאמת אישית.", "tags": ["תוצאות", "מחזיק", "מחזיקות", "זמן"] }
+  ],
+  "qualification": [
+    { "id": "interest", "question": "באיזה טיפול מתעניינים? (טיפול פנים, הזרקות, או שעוד לא בטוח/ה)", "required": true, "weight": 2, "highValueAnswers": ["בוטוקס", "חומצה", "מילוי", "הזרקות"] },
+    { "id": "before", "question": "האם עברת טיפולים אסתטיים בעבר?", "required": false, "weight": 1, "highValueAnswers": ["כן"] }
+  ],
+  "guardrails": { "extraDecline": null, "extraBlockedTopics": [] },
+  "escalation": { "notifyPhones": ["972501234567"], "extraTriggers": ["תלונה", "כוויה"] }
+}

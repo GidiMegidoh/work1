@@ -1,0 +1,46 @@
+{
+  "id": "preset-medical",
+  "businessName": "מרפאת המשפחה ד\"ר אזולאי",
+  "vertical": "medical",
+  "language": "he",
+  "timezone": "Asia/Jerusalem",
+  "extraInfo": {
+    "address": "שדרות בן גוריון 8, קומת קרקע (נגיש), חיפה. חניה חופשית ברחובות הסמוכים.",
+    "phone": "04-5552468",
+    "paymentMethods": "מזומן, אשראי וביט.",
+    "cancellationPolicy": "ביטול עד 12 שעות מראש — ללא חיוב.",
+    "insurance": "המרפאה פרטית; ניתן לקבל קבלה להחזר מהביטוח המשלים."
+  },
+  "hours": {
+    "sun": [["08:00", "18:00"]],
+    "mon": [["08:00", "18:00"]],
+    "tue": [["08:00", "18:00"]],
+    "wed": [["08:00", "13:00"]],
+    "thu": [["08:00", "18:00"]],
+    "fri": [["08:00", "12:00"]],
+    "sat": []
+  },
+  "closedDates": [],
+  "services": [
+    { "id": "doctor-visit", "name": "ביקור רופא", "aliases": ["ביקור", "בדיקת רופא", "תור לרופא", "בדיקה"], "durationMinutes": 20, "price": 300, "prep": null },
+    { "id": "blood-test", "name": "בדיקות דם", "aliases": ["דם", "בדיקת דם", "מעבדה"], "durationMinutes": 10, "price": 120, "prep": "יש להגיע בצום של 8 שעות (מים מותר)." },
+    { "id": "flu-shot", "name": "חיסון שפעת", "aliases": ["חיסון", "שפעת"], "durationMinutes": 10, "price": 90, "prep": null },
+    { "id": "nutrition", "name": "ייעוץ תזונה", "aliases": ["תזונה", "דיאטנית", "דיאטה"], "durationMinutes": 45, "price": 350, "prep": null }
+  ],
+  "priceDisclaimer": "המחירים הם למפגש פרטי; העלות הסופית עשויה להשתנות בהתאם לבדיקה בפועל.",
+  "booking": { "minLeadTimeMinutes": 60, "bufferMinutes": 10, "horizonDays": 10, "maxSlotsPerReply": 6, "defaultServiceId": "doctor-visit" },
+  "calendar": { "provider": "memory", "calendarId": null, "additionalBusyCalendars": [] },
+  "whatsapp": { "phoneNumberId": null },
+  "faq": [
+    { "q": "איך מגיעים ואיפה חונים?", "answer": "שדרות בן גוריון 8, קומת קרקע נגישה. חניה חופשית ברחובות הסמוכים אחרי 9 בבוקר.", "tags": ["חניה", "חנייה", "להגיע", "הגעה", "כתובת", "איפה", "מיקום", "נגיש", "נגישות"] },
+    { "q": "מתי מקבלים תשובות של בדיקות דם?", "answer": "תוצאות בדיקות דם מתקבלות תוך 3 ימי עסקים ונשלחות אליכם ישירות במייל מאובטח.", "tags": ["תוצאות", "תשובות", "מעבדה", "מייל"] },
+    { "q": "אילו אמצעי תשלום מקבלים?", "answer": "מזומן, כל כרטיסי האשראי וביט. מקבלים קבלה מסודרת להחזר מהביטוח.", "tags": ["תשלום", "תשלומים", "אשראי", "ביט", "מזומן", "קבלה", "החזר"] },
+    { "q": "האם צריך הפניה?", "answer": "לא צריך הפניה — המרפאה פרטית וכל אחד מוזמן לקבוע תור ישירות.", "tags": ["הפניה", "התחייבות", "קופה", "קופת", "ביטוח"] }
+  ],
+  "qualification": [
+    { "id": "reason", "question": "מה הסיבה לפנייה? (בדיקה שגרתית, עניין מתמשך, או משהו חדש)", "required": true, "weight": 2, "highValueAnswers": ["ייעוץ תזונה", "מעקב", "פרטי"] },
+    { "id": "first", "question": "האם זה ביקור ראשון אצלנו?", "required": false, "weight": 1, "highValueAnswers": ["כן"] }
+  ],
+  "guardrails": { "extraDecline": null, "extraBlockedTopics": [] },
+  "escalation": { "notifyPhones": ["972501234567"], "extraTriggers": ["תלונה", "מיון", "חירום"] }
+}

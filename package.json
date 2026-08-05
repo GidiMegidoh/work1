@@ -1,24 +1,26 @@
 {
-  "name": "whatsapp-appointment-bot",
+  "name": "shibutz",
   "version": "1.0.0",
-  "description": "בוט WhatsApp לקביעת תורים - דמו על Twilio + Node.js",
-  "main": "bot.js",
+  "description": "שיבוץ — סוכן WhatsApp בעברית לקביעת תורים, מרובה-טננטים, עם אולפן דמו ללקוחות פוטנציאליים",
+  "main": "src/core/agent.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node bot.js",
-    "dev": "node --watch bot.js",
-    "demo": "node demo-cli.js"
+    "sim": "node src/cli/sim.js",
+    "demo:new": "node src/cli/demo-new.js",
+    "demo": "node src/cli/demo-serve.js",
+    "demo:build": "node src/demo/build-site.js",
+    "verify": "node test/run-probes.js && node test/network-guard.js",
+    "test": "npm run verify"
   },
   "keywords": [
     "whatsapp",
-    "twilio",
+    "hebrew",
     "appointments",
-    "bot"
+    "booking",
+    "agent"
   ],
   "license": "MIT",
-  "dependencies": {
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "twilio": "^5.3.0"
+  "devDependencies": {
+    "playwright-core": "^1.62.1"
   }
 }
