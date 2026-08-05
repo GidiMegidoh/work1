@@ -50,17 +50,21 @@
    * במכוון לא startsWith כללי — "תורה" איננה "תור".
    */
   function wordHit(token, kw) {
-    if (token === kw) return true;
+    // בודקים את הטוקן המקורי וכל שלב של הסרת קידומת — כולל צורת ריבוי בכל שלב
+    // (אחרת "מדממות" מאבדת את ה-מ' כקידומת ולא נבדקת מול "מדמם"+"ות")
+    var candidates = [token];
     var t = token;
     for (var i = 0; i < 2; i++) {
       if (t.length > kw.length && HEB_PARTICLES.indexOf(t[0]) !== -1) {
         t = t.slice(1);
-        if (t === kw) return true;
+        candidates.push(t);
       } else break;
     }
-    for (var s = 0; s < HEB_SUFFIXES.length; s++) {
-      var suf = HEB_SUFFIXES[s];
-      if (t === kw + suf) return true;
+    for (var c = 0; c < candidates.length; c++) {
+      if (candidates[c] === kw) return true;
+      for (var s = 0; s < HEB_SUFFIXES.length; s++) {
+        if (candidates[c] === kw + HEB_SUFFIXES[s]) return true;
+      }
     }
     return false;
   }
@@ -110,9 +114,10 @@
     CANCEL: ['לבטל', 'ביטול', 'בטל', 'בטלי', 'תבטלו', 'מבטל', 'מבטלת'],
     PRICE: ['כמה עולה', 'כמה זה עולה', 'כמה יעלה', 'מה המחיר', 'מה העלות',
       'מחיר', 'מחירים', 'מחירון', 'עלות', 'תעריף', 'תעריפים', 'עולה'],
-    HOURS: ['שעות פעילות', 'שעות פתיחה', 'שעות קבלה', 'מתי אתם פתוחים',
+    HOURS: ['שעות פעילות', 'שעות הפעילות', 'שעות פתיחה', 'שעות הפתיחה',
+      'שעות קבלה', 'שעות הקבלה', 'מה השעות', 'מתי אתם פתוחים',
       'מתי פתוח', 'עד איזו שעה', 'עד איזה שעה', 'באילו שעות', 'באיזה שעות',
-      'מתי עובדים', 'פתוחים', 'פתוח', 'פתוחה', 'סגור', 'סגורים', 'שעות'],
+      'מתי עובדים', 'אתם עובדים', 'פתוחים', 'פתוח', 'פתוחה', 'סגור', 'סגורים'],
     HANDOFF: ['נציג', 'נציגה', 'נציג שירות', 'בן אדם', 'בנאדם', 'אנושי', 'אנושית',
       'ייצוג אנושי', 'יצוג אנושי', 'לדבר עם מישהו', 'לדבר עם בן אדם',
       'שיחה טלפונית', 'שיחת טלפון', 'תתקשרו אליי', 'תתקשרו אלי', 'שיתקשרו',
@@ -125,6 +130,8 @@
       'סבבה', 'יאללה', 'מעולה', 'סגור', 'מתאים', 'לאשר', 'בטח', 'כמובן'],
     NO: ['לא', 'לא מתאים', 'עזוב', 'עזבי', 'לא תודה'],
     MORE: ['עוד', 'נוספים', 'אחרים', 'אחר', 'מאוחר יותר', 'מוקדם יותר', 'הבא'],
+    MY_BOOKING: ['מתי התור', 'התור שלי', 'איזה תור יש לי', 'פרטי התור',
+      'מה המועד שלי', 'לאיזו שעה התור', 'באיזו שעה התור', 'יש לי תור'],
     SKIP: ['דלג', 'לדלג', 'דלגי', 'הבא', 'לא משנה', 'העדף לא', 'מעדיף לא', 'מעדיפה לא'],
     POLICY: ['מדיניות', 'ביטולים', 'קנס'],
   };
@@ -145,14 +152,17 @@
     'מה לקחת', 'איזה כדור', 'זה מסוכן', 'האם זה מסוכן', 'זה נורמלי',
     'האם זה נורמלי', 'זה בסדר ש', 'מה לעשות עם', 'נפלה לי', 'נפל לי',
     'יצא לי', 'ירד לי', 'נשרה לי', 'התעוררתי עם', 'זה יעבור', 'מסוכן',
+    'מי מלח', 'לשטוף', 'שטיפות', 'ריח רע', 'ריח מהפה', 'תרופת סבתא', 'טיפול ביתי',
   ];
 
   var LEGAL_ADVICE = [
     'יש לי קייס', 'יש לי תיק', 'יש לי עילה', 'עילה', 'קייס',
     'האם מגיע לי', 'מגיע לי פיצוי', 'מה הסיכויים', 'מה הסיכוי', 'סיכויי',
     'שווה לתבוע', 'כדאי לתבוע', 'אפשר לתבוע', 'לתבוע את', 'להגיש תביעה',
-    'האם לחתום', 'כדאי לחתום', 'מה אומר החוק', 'זה חוקי', 'האם זה חוקי',
+    'האם לחתום', 'כדאי לחתום', 'לחתום', 'מה אומר החוק', 'חוקי', 'חוקית',
     'מה החוק אומר', 'האם אני חייב', 'האם אני חייבת', 'יכולים לפטר',
+    'מותר למעסיק', 'אסור למעסיק', 'מותר לו', 'מותר לה', 'מותר להם',
+    'מבחינה משפטית', 'משפטית', 'עוול', 'זכויותיי', 'הזכויות שלי',
   ];
 
   var FITNESS_INJURY = [
@@ -604,7 +614,22 @@
       );
     }
 
+    /** המועד עלול להיתפס בין ההצעה לאישור (או דרך כפתור ישן) — בודקים שוב. */
+    function slotStillFree(session, excludeBookingId) {
+      var svc = serviceById(session.serviceId) || defaultService();
+      var startMs = fromIsoLocal(session.slotIso).getTime();
+      var endMs = startMs + (svc.durationMinutes + bufferMin) * 60000;
+      return !overlapsBooked(startMs, endMs, excludeBookingId);
+    }
+
+    function slotTakenReoffer(session) {
+      session.slotOffset = 0;
+      return offerSlots(session,
+        'אוי, המועד הזה בדיוק נתפס. 🙏 אלו המועדים שעדיין פנויים:');
+    }
+
     function finalizeBooking(session) {
+      if (!slotStillFree(session, null)) return slotTakenReoffer(session);
       var svc = serviceById(session.serviceId) || defaultService();
       bookingSeq += 1;
       var b = {
@@ -665,6 +690,7 @@
         return reply('התור המקורי כבר לא פעיל. רוצה לקבוע תור חדש?',
           [{ id: 'menu:book', title: 'קביעת תור 📅' }]);
       }
+      if (!slotStillFree(session, b.id)) return slotTakenReoffer(session);
       var oldLabel = slotLongLabel(b.slotIso);
       b.slotIso = session.slotIso;
       b.updatedAt = toIsoLocal(new Date(nowFn()));
@@ -832,6 +858,8 @@
       if (id === 'menu:prices') return reply(priceListText(), [{ id: 'menu:book', title: 'קביעת תור 📅' }]);
       if (id === 'menu:hours') return reply(hoursText(), [{ id: 'menu:book', title: 'קביעת תור 📅' }]);
       if (id === 'handoff') return handoffReply(session, rawTitle || 'בקשת נציג (כפתור)');
+      if (id === 'reschedule:start') return startReschedule(session);
+      if (id === 'cancel:start') return startCancel(session);
       if (id.indexOf('svc:') === 0) {
         session.ctx = session.ctx || 'book';
         session.serviceId = id.slice(4);
@@ -970,7 +998,9 @@
         case STEPS.AWAITING_NAME: {
           if (hasStrongIntent(norm, tokens)) return null; // שיטופל גלובלית
           var name = raw.replace(/^(קוראים לי|שמי|השם שלי|אני)\s+/u, '').trim();
-          if (name.length < 2 || /^\d+$/.test(name)) {
+          var soloYesNo = tokens.length === 1 &&
+            (KW.YES.indexOf(norm) !== -1 || KW.NO.indexOf(norm) !== -1);
+          if (name.length < 2 || /^\d+$/.test(name) || soloYesNo) {
             return reply('אשמח לשם מלא (לפחות 2 תווים) כדי לרשום את התור. 🙏');
           }
           session.name = name;
@@ -1175,6 +1205,23 @@
         if (inBookingFlow.indexOf(session.step) !== -1) return abortFlow(session);
         return startCancel(session);
       }
+      // "מתי התור שלי?" — פרטי התור הקיים, לא פתיחת הזמנה חדשה
+      if (textHasAny(norm, tokens, KW.MY_BOOKING)) {
+        var mine = latestActiveBooking(session);
+        if (mine) {
+          return reply(
+            'התור הקרוב שלך:\n• ' + mine.serviceName + '\n• ' + slotLongLabel(mine.slotIso) +
+            '\n• על שם: ' + mine.customerName + '\n• מס\' אסמכתא: ' + mine.id,
+            [
+              { id: 'reschedule:start', title: 'לשנות מועד 🔁' },
+              { id: 'cancel:start', title: 'לבטל תור ❌' },
+            ]
+          );
+        }
+        return reply('לא מצאתי תור פעיל על השיחה הזאת. רוצה לקבוע אחד?',
+          [{ id: 'menu:book', title: 'קביעת תור 📅' }]);
+      }
+
       if (textHasAny(norm, tokens, KW.BOOK)) {
         return startBooking(session, svc ? svc.id : null);
       }
