@@ -103,7 +103,7 @@ function renderIndex(tenant, v) {
 
   const tagline = esc(tenant.tagline || v.tagline);
   const favicon = `data:image/svg+xml,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${v.accentDark}"/><text x="32" y="43" font-size="34" font-family="serif" font-weight="700" fill="#fff" text-anchor="middle">${initial}</text></svg>`
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${v.accentDark}"/><text x="32" y="43" font-size="34" font-family="serif" font-weight="700" fill="#fff" text-anchor="middle">${esc(initial)}</text></svg>`
   )}`;
 
   return `<!doctype html>
@@ -231,7 +231,7 @@ function buildSite(slug) {
 
   // נגן הצ'אט — תבנית עם השלמת מיתוג
   const chatHtml = fs.readFileSync(path.join(ASSETS, 'chat.html'), 'utf8')
-    .replace(/{{BUSINESS_NAME}}/g, esc(tenant.businessName))
+    .replace(/{{BUSINESS_NAME}}/g, () => esc(tenant.businessName))
     .replace(/{{ACCENT}}/g, v.accent)
     .replace(/{{ACCENT_DARK}}/g, v.accentDark);
   fs.writeFileSync(path.join(outDir, 'chat.html'), chatHtml, 'utf8');
