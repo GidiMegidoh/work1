@@ -90,6 +90,28 @@ npm test
   את כל התרחישים ואוכף אפס ניסיונות חיבור + היעדר אזכורים ל־
   graph.facebook.com / googleapis / hebcal / twilio בקוד.
 
+## 📤 שליחת דמו ללידים (outreach)
+
+שולח לליד הודעת WhatsApp דרך Twilio עם הטקסט שלך + קישור לדמו + קריאה
+לפעולה. חי מחוץ ל־`src/` בכוונה — הדמו עצמו נשאר בלי רשת (שומר הרשת
+אוכף), רק כלי המכירות מדבר עם Twilio.
+
+```bash
+cp .env.example .env                                # מילוי פרטי Twilio
+npm run send-demo -- "+972501234567" "היי, הנה הדמו"   # שליחה בפקודה אחת
+DRY_RUN=1 npm run send-demo -- 0501234567           # בדיקה בלי שליחה
+
+npm run send-server                                 # או כ־API (פורט 3100)
+curl -X POST localhost:3100/send-demo \
+  -d '{"phone":"+972501234567","message":"היי, הנה הדמו"}'
+curl localhost:3100/sent                            # יומן השליחות
+```
+
+- קישור הדמו: `DEMO_LINK` מהסביבה, או הקישור הראשון ב־`assets/wa-link.md`.
+- כל שליחה נרשמת ב־`outreach/sent-log.jsonl` (בגיטאיגנור — מספרי לידים).
+- ברירת מחדל לשולח: ה־sandbox של Twilio; במספר עסקי מאושר — עדכנו
+  `TWILIO_WHATSAPP_FROM`.
+
 ## 📂 מבנה
 
 ```
@@ -100,6 +122,8 @@ src/cli/demo-serve.js   ← בנייה + הגשה של אתר הדמו
 src/demo/build-site.js  ← מחולל האתר הסטטי
 src/demo/assets/        ← נגן הצ'אט (HTML/CSS/JS)
 src/presets/            ← preset מלא לכל ורטיקל
+outreach/               ← שליחת דמו ללידים (Twilio, CLI + POST /send-demo)
+assets/wa-link.md       ← קישור הדמו שמצורף לכל הודעה
 tenants/                ← קונפיגורציות טננטים (_template.json = סכמה)
 demo/sites/<slug>/      ← פלט סטטי לאירוח
 test/                   ← בדיקות קבלה + שומר רשת
