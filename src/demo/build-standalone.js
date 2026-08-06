@@ -31,10 +31,13 @@ function escAttr(html) {
   return html.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
+/* כל ההחלפות כאן עם פונקציה, לא מחרוזת — כדי שרצפי $ בתוכן מוטמע
+   (CSS/JS/JSON) לעולם לא יפורשו כתבניות החלפה של String.replace. */
+
 function inlineStylesheet(html, href, css) {
   const linkTag = `<link rel="stylesheet" href="${href}">`;
   if (!html.includes(linkTag)) throw new Error(`לא נמצא ${linkTag} להטמעה`);
-  return html.replace(linkTag, `<style>\n${css}\n</style>`);
+  return html.replace(linkTag, () => `<style>\n${css}\n</style>`);
 }
 
 function buildStandalone(slug) {
@@ -46,14 +49,17 @@ function buildStandalone(slug) {
 
   // --- מסמך הצ'אט: chat.html עם הכול בפנים ---
   let chatDoc = inlineStylesheet(read('chat.html'), 'chat.css', read('chat.css'));
+  for (const tag of ['<script src="agent.js"></script>', '<script src="chat.js"></script>']) {
+    if (!chatDoc.includes(tag)) throw new Error(`לא נמצא ${tag} להטמעה`);
+  }
   chatDoc = chatDoc.replace(
     '<script src="agent.js"></script>',
-    `<script>\n${safeScript(read('agent.js'))}\n</script>`
+    () => `<script>\n${safeScript(read('agent.js'))}\n</script>`
   );
   chatDoc = chatDoc.replace(
     '<script src="chat.js"></script>',
-    `<script>window.__SHIBUTZ_TENANT__ = ${safeJson(tenant)}; window.__SHIBUTZ_EMBEDDED__ = true;</script>\n` +
-    `<script>\n${safeScript(read('chat.js'))}\n</script>`
+    () => `<script>window.__SHIBUTZ_TENANT__ = ${safeJson(tenant)}; window.__SHIBUTZ_EMBEDDED__ = true;</script>\n` +
+      `<script>\n${safeScript(read('chat.js'))}\n</script>`
   );
 
   // --- עמוד העסק: מטמיעים CSS ומחליפים את ה-iframe לטעינת srcdoc ---
@@ -67,7 +73,7 @@ function buildStandalone(slug) {
   // ה-srcdoc נטען מראש — מבטלים את הטעינה העצלה של גרסת הקבצים
   const lazyLine = 'if (!frame.src) frame.src = frame.dataset.src; // טעינה עצלה — שיחה חדשה מבודדת';
   if (!page.includes(lazyLine)) throw new Error('לא נמצאה שורת הטעינה העצלה של הצ\'אט');
-  page = page.replace(lazyLine, '/* בגרסה העצמאית הצ\'אט מוטמע ב-srcdoc ונטען מראש */');
+  page = page.replace(lazyLine, () => '/* בגרסה העצמאית הצ\'אט מוטמע ב-srcdoc ונטען מראש */');
 
   const outFile = path.join(siteDir, 'standalone.html');
   fs.writeFileSync(outFile, page, 'utf8');
