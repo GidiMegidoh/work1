@@ -165,13 +165,15 @@
 
   function init() {
     messagesEl = $('#messages');
-    if (new URLSearchParams(location.search).has('embedded')) {
+    if (new URLSearchParams(location.search).has('embedded') || window.__SHIBUTZ_EMBEDDED__) {
       document.body.classList.add('embedded');
     }
 
-    // הקריאה היחידה לרשת בכל הדמו: קובץ הטננט עצמו
-    fetch('tenant.json')
-      .then(function (res) { return res.json(); })
+    // בגרסה העצמאית (standalone) הטננט מוזרק מראש; אחרת — הקריאה היחידה
+    // לרשת בכל הדמו: קובץ הטננט עצמו
+    (window.__SHIBUTZ_TENANT__
+      ? Promise.resolve(window.__SHIBUTZ_TENANT__)
+      : fetch('tenant.json').then(function (res) { return res.json(); }))
       .then(function (t) {
         tenant = t;
         agent = ShibutzAgent.createAgent(tenant);

@@ -10,7 +10,8 @@
  *   TWILIO_ACCOUNT_SID    חשבון Twilio (ACxxxx...)
  *   TWILIO_AUTH_TOKEN     טוקן אימות
  *   TWILIO_WHATSAPP_FROM  מספר השולח (ברירת מחדל: sandbox +14155238886)
- *   DEMO_URL              קישור הדמו שנשלח לפרוספקט
+ *   DEMO_URL              קישור אתר הדמו שנשלח לפרוספקט
+ *   DEMO_CHAT_URL         (אופציונלי) קישור ישיר לנגן הצ'אט — שורה נוספת בהודעה
  *   DRY_RUN=1             הדפסה + רישום ביומן בלי שליחה אמיתית
  *
  * בלי credentials המודול עובר אוטומטית ל-dry-run, כדי שאפשר יהיה לבדוק
@@ -51,6 +52,7 @@ function getConfig() {
     token,
     from: process.env.TWILIO_WHATSAPP_FROM || DEFAULT_SANDBOX_FROM,
     demoUrl: process.env.DEMO_URL || 'http://localhost:3000',
+    chatUrl: process.env.DEMO_CHAT_URL || '',
     demoUrlIsDefault: !process.env.DEMO_URL,
     dryRun: process.env.DRY_RUN === '1' || !hasCreds,
     hasCreds,
@@ -73,15 +75,16 @@ function normalizePhone(raw) {
 
 // ---- תבנית ההודעה ----
 
-function buildMessage(text, demoUrl) {
-  return [
+function buildMessage(text, demoUrl, chatUrl) {
+  const lines = [
     text.trim(),
     '',
     '🤖 הדמו החי של שיבוץ — סוכן WhatsApp בעברית לקביעת תורים:',
-    demoUrl,
-    '',
-    '👆 לחצו על הקישור כדי להתנסות בדמו',
-  ].join('\n');
+    `🌐 אתר הדמו: ${demoUrl}`,
+  ];
+  if (chatUrl) lines.push(`💬 דמו בוט הוואטסאפ: ${chatUrl}`);
+  lines.push('', '👆 לחצו על הקישור, גלשו באתר ונסו לדבר עם הבוט בבועת הצ\'אט');
+  return lines.join('\n');
 }
 
 // ---- יומן שליחות ----
@@ -158,7 +161,7 @@ async function sendDemo({ phone, message }) {
     return { ok: false, error: 'חסרה הודעה (message)' };
   }
 
-  const body = buildMessage(message, cfg.demoUrl);
+  const body = buildMessage(message, cfg.demoUrl, cfg.chatUrl);
   const entry = {
     at: new Date().toISOString(),
     to,
