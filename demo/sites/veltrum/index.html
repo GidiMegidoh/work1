@@ -3,52 +3,75 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>ולטרום — הדגמת שיבוץ</title>
-  <meta name="description" content="ולטרום — הדגמת שיבוץ — קביעת תורים מהירה בוואטסאפ">
+  <title>סטודיו ולטרום</title>
+  <meta name="description" content="סטודיו ולטרום — צילום שמרגיש טבעי. תיאום שלוקח דקה בוואטסאפ.">
+  <meta name="theme-color" content="#1d1a14">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%236e4a1c%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2243%22%20font-size%3D%2234%22%20font-family%3D%22serif%22%20font-weight%3D%22700%22%20fill%3D%22%23fff%22%20text-anchor%3D%22middle%22%3E%D7%A1%3C%2Ftext%3E%3C%2Fsvg%3E">
   <link rel="stylesheet" href="site.css">
-  <style>:root { --accent: #4f46e5; --accent-dark: #3730a3; --accent-soft: color-mix(in srgb, #4f46e5 12%, white); }</style>
+  <style>:root { --accent: #996b2f; --accent-dark: #6e4a1c; --accent-soft: color-mix(in srgb, #996b2f 12%, white); }</style>
 </head>
 <body>
   <header class="hero">
     <div class="container">
-      <span class="emoji">📅</span>
-      <h1>ולטרום — הדגמת שיבוץ</h1>
-      <p>קובעים תור בהודעה אחת — עונים לך בוואטסאפ תוך שניות, גם עכשיו.</p>
-      <button class="cta" data-open-chat>💬 דברו איתנו בוואטסאפ</button>
+      <div>
+        <span class="eyebrow">קביעת תורים בוואטסאפ</span>
+        <h1>סטודיו ולטרום</h1>
+        <p class="lede">צילום שמרגיש טבעי. תיאום שלוקח דקה בוואטסאפ.</p>
+        <div class="cta-row">
+          <button class="cta" data-open-chat><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3Z"/><path d="M8.8 9.2c.3 2.7 3.2 5.6 5.9 5.9l1.5-1.5-2.1-1.2-1 .7c-.8-.4-1.5-1.1-1.9-1.9l.7-1-1.2-2.1-1.9 1.1Z"/></svg> דברו איתנו בוואטסאפ</button>
+          <a class="cta-ghost" href="#services">לשירותים ולמחירים</a>
+        </div>
+      </div>
+      <div class="chat-mock" aria-hidden="true">
+        <div class="cm-head">
+          <span class="cm-avatar">ס</span>
+          <div>
+            <strong>סטודיו ולטרום</strong>
+            <span class="cm-status">מקוון עכשיו</span>
+          </div>
+        </div>
+        <div class="cm-body">
+          <div class="cm-msg out">היי, אפשר לקבוע תור לפגישת ייעוץ והכרות?</div>
+          <div class="cm-msg in">בשמחה! נשארו השבוע: חמישי 10:00 או ראשון 14:30 — מה נוח לך?</div>
+          <div class="cm-msg out">חמישי 10:00</div>
+          <div class="cm-msg in">נקבע ✓ שריינתי לך את המועד. תזכורת תגיע יום לפני.</div>
+        </div>
+      </div>
     </div>
   </header>
 
   <main class="container">
     <section id="services">
-      <h2>📅 השירותים שלנו</h2>
+      <div class="sec-head">
+        <span class="eyebrow">מה אנחנו מציעים</span>
+        <h2>שירותים ומחירים</h2>
+      </div>
       <div class="services">
       <div class="service-card">
-        <div>
-          <div class="name">פגישת ייעוץ והכרות</div>
-          <div class="dur">כ-30 דק'</div>
-        </div>
-        <div class="price">0 ₪</div>
+        <div class="name">פגישת ייעוץ והכרות</div>
+        <span class="dur"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg> כ-30 דק'</span>
+        <div class="price free">ללא עלות</div>
       </div>
       <div class="service-card">
-        <div>
-          <div class="name">צילומי תדמית</div>
-          <div class="dur">כ-90 דק'</div>
-        </div>
-        <div class="price">900 ₪</div>
+        <div class="name">צילומי תדמית</div>
+        <span class="dur"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg> כ-90 דק'</span>
+        <div class="price">900<span class="cur">₪</span></div>
       </div>
       <div class="service-card">
-        <div>
-          <div class="name">צילומי משפחה</div>
-          <div class="dur">כ-60 דק'</div>
-        </div>
-        <div class="price">750 ₪</div>
+        <div class="name">צילומי משפחה</div>
+        <span class="dur"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg> כ-60 דק'</span>
+        <div class="price">750<span class="cur">₪</span></div>
       </div>
       </div>
       
     </section>
 
     <section id="hours">
-      <h2>🕘 שעות פעילות</h2>
+      <div class="sec-head">
+        <span class="eyebrow">מתי אנחנו כאן</span>
+        <h2>שעות פעילות</h2>
+      </div>
+      <div class="hours-card">
       <table class="hours-table">
         <tr data-day="0"><td>יום ראשון</td><td>09:00–17:00</td></tr>
         <tr data-day="1"><td>יום שני</td><td>09:00–17:00</td></tr>
@@ -58,53 +81,61 @@
         <tr data-day="5"><td>יום שישי</td><td>08:00–12:00</td></tr>
         <tr data-day="6"><td>יום שבת</td><td class="closed">סגור</td></tr>
       </table>
+      </div>
     </section>
 
     <section id="faq">
-      <h2>❓ שאלות נפוצות</h2>
+      <div class="sec-head">
+        <span class="eyebrow">לפני שמתקשרים</span>
+        <h2>שאלות נפוצות</h2>
+      </div>
       <div class="faq">
       <details>
-        <summary>איך מגיעים ואיפה חונים?</summary>
+        <summary>איך מגיעים ואיפה חונים? <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></summary>
         <div class="answer">מתחם התחנה, רחוב האומנים 3, קומה 2. חניה חופשית בשפע בתוך המתחם.</div>
       </details>
       <details>
-        <summary>תוך כמה זמן מקבלים את התמונות?</summary>
+        <summary>תוך כמה זמן מקבלים את התמונות? <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></summary>
         <div class="answer">גלריה מעוצבת ומוכנה תוך 7 ימי עסקים, עם קישור להורדה באיכות מלאה.</div>
       </details>
       <details>
-        <summary>אילו אמצעי תשלום מקבלים?</summary>
+        <summary>אילו אמצעי תשלום מקבלים? <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></summary>
         <div class="answer">אשראי, ביט, פייבוקס ומזומן. שריון תאריך במקדמה של 30%.</div>
       </details>
       <details>
-        <summary>מה מדיניות הביטולים?</summary>
+        <summary>מה מדיניות הביטולים? <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></summary>
         <div class="answer">ביטול עד 48 שעות מראש — החזר מלא של המקדמה. פחות מזה — המקדמה נשמרת כזיכוי לתאריך חדש.</div>
       </details>
       </div>
     </section>
 
     <section id="contact">
-      <h2>📍 יצירת קשר והגעה</h2>
+      <div class="sec-head">
+        <span class="eyebrow">מוצאים אותנו</span>
+        <h2>יצירת קשר והגעה</h2>
+      </div>
       <div class="contact-card">
-        <div>📍 רחוב האומנים 3, קומה 2, מתחם התחנה, באר שבע. חניה חופשית במתחם.</div>
-        <div>📞 054-5559988</div>
-        <div>💳 אשראי, ביט, פייבוקס ומזומן.</div>
-        <div>ℹ️ ביטול עד 48 שעות מראש — החזר מלא של המקדמה.</div>
+        <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-5.4-6.5-10a6.5 6.5 0 0 1 13 0c0 4.6-6.5 10-6.5 10Z"/><circle cx="12" cy="10.6" r="2.3"/></svg> <span>רחוב האומנים 3, קומה 2, מתחם התחנה, באר שבע. חניה חופשית במתחם.</span></div>
+        <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5C5 3.7 5.7 3 6.5 3h2L10 7l-1.7 1.7a12.5 12.5 0 0 0 7 7L17 14l4 1.5v2c0 .8-.7 1.5-1.5 1.5C10.6 19 5 13.4 5 4.5Z"/></svg> <span>054-5559988</span></div>
+        <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 10h18"/></svg> <span>אשראי, ביט, פייבוקס ומזומן.</span></div>
+        <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 7.8v.4"/></svg> <span>ביטול עד 48 שעות מראש — החזר מלא של המקדמה.</span></div>
       </div>
     </section>
   </main>
 
   <footer>
-    עמוד דמו · ולטרום — הדגמת שיבוץ · נבנה עם שיבוץ — סוכן WhatsApp בעברית
+    סטודיו ולטרום · המענה בוואטסאפ פועל 24/7 ·
+    <span class="brand">Veltrum</span> — סוכני WhatsApp לעסקים
   </footer>
 
   <button class="chat-fab" data-open-chat aria-label="פתיחת צ'אט">
-    💬<span class="hint">יש שאלה? דברו איתנו 👋</span>
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3Z"/><path d="M8.8 9.2c.3 2.7 3.2 5.6 5.9 5.9l1.5-1.5-2.1-1.2-1 .7c-.8-.4-1.5-1.1-1.9-1.9l.7-1-1.2-2.1-1.9 1.1Z"/></svg> וואטסאפ<span class="hint">יש שאלה? עונים תוך שניות</span>
   </button>
 
   <div class="chat-overlay" id="chat-overlay">
     <div class="chat-frame-wrap">
       <button class="chat-close" id="chat-close" aria-label="סגירה">✕</button>
-      <iframe title="צ'אט ולטרום — הדגמת שיבוץ" data-src="chat.html?embedded=1"></iframe>
+      <iframe title="צ'אט סטודיו ולטרום" data-src="chat.html?embedded=1"></iframe>
     </div>
   </div>
 

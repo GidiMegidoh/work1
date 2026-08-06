@@ -79,7 +79,7 @@ function buildMessage(text, demoUrl, chatUrl) {
   const lines = [
     text.trim(),
     '',
-    '🤖 הדמו החי של שיבוץ — סוכן WhatsApp בעברית לקביעת תורים:',
+    'הדמו החי של Veltrum — סוכן WhatsApp בעברית לקביעת תורים:',
     `🌐 אתר הדמו: ${demoUrl}`,
   ];
   if (chatUrl) lines.push(`💬 דמו בוט הוואטסאפ: ${chatUrl}`);
