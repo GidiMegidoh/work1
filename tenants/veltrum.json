@@ -1,0 +1,193 @@
+{
+  "id": "veltrum",
+  "businessName": "הסטודיו של נועה — צילום",
+  "vertical": "general",
+  "language": "he",
+  "timezone": "Asia/Jerusalem",
+  "extraInfo": {
+    "address": "רחוב האומנים 3, קומה 2, מתחם התחנה, באר שבע. חניה חופשית במתחם.",
+    "phone": "054-5559988",
+    "paymentMethods": "אשראי, ביט, פייבוקס ומזומן.",
+    "cancellationPolicy": "ביטול עד 48 שעות מראש — החזר מלא של המקדמה.",
+    "insurance": null
+  },
+  "hours": {
+    "sun": [
+      [
+        "09:00",
+        "17:00"
+      ]
+    ],
+    "mon": [
+      [
+        "09:00",
+        "17:00"
+      ]
+    ],
+    "tue": [
+      [
+        "09:00",
+        "17:00"
+      ]
+    ],
+    "wed": [
+      [
+        "12:00",
+        "20:00"
+      ]
+    ],
+    "thu": [
+      [
+        "09:00",
+        "17:00"
+      ]
+    ],
+    "fri": [
+      [
+        "08:00",
+        "12:00"
+      ]
+    ],
+    "sat": []
+  },
+  "closedDates": [],
+  "services": [
+    {
+      "id": "consult",
+      "name": "פגישת ייעוץ והכרות",
+      "aliases": [
+        "ייעוץ",
+        "יעוץ",
+        "היכרות",
+        "התייעצות"
+      ],
+      "durationMinutes": 30,
+      "price": 0,
+      "prep": null
+    },
+    {
+      "id": "headshot",
+      "name": "צילומי תדמית",
+      "aliases": [
+        "תדמית",
+        "לינקדאין",
+        "פורטרט",
+        "תמונות עסקיות"
+      ],
+      "durationMinutes": 90,
+      "price": 900,
+      "prep": "מומלץ להביא 2–3 חילופי בגדים בצבעים חלקים."
+    },
+    {
+      "id": "family",
+      "name": "צילומי משפחה",
+      "aliases": [
+        "משפחה",
+        "משפחתיות",
+        "ילדים"
+      ],
+      "durationMinutes": 60,
+      "price": 750,
+      "prep": null
+    }
+  ],
+  "priceDisclaimer": null,
+  "booking": {
+    "minLeadTimeMinutes": 120,
+    "bufferMinutes": 15,
+    "horizonDays": 14,
+    "maxSlotsPerReply": 6,
+    "defaultServiceId": "consult"
+  },
+  "calendar": {
+    "provider": "memory",
+    "calendarId": null,
+    "additionalBusyCalendars": []
+  },
+  "whatsapp": {
+    "phoneNumberId": null
+  },
+  "faq": [
+    {
+      "q": "איך מגיעים ואיפה חונים?",
+      "answer": "מתחם התחנה, רחוב האומנים 3, קומה 2. חניה חופשית בשפע בתוך המתחם.",
+      "tags": [
+        "חניה",
+        "חנייה",
+        "להגיע",
+        "הגעה",
+        "כתובת",
+        "איפה",
+        "מיקום"
+      ]
+    },
+    {
+      "q": "תוך כמה זמן מקבלים את התמונות?",
+      "answer": "גלריה מעוצבת ומוכנה תוך 7 ימי עסקים, עם קישור להורדה באיכות מלאה.",
+      "tags": [
+        "תמונות",
+        "גלריה",
+        "מקבלים",
+        "מוכן",
+        "זמן"
+      ]
+    },
+    {
+      "q": "אילו אמצעי תשלום מקבלים?",
+      "answer": "אשראי, ביט, פייבוקס ומזומן. שריון תאריך במקדמה של 30%.",
+      "tags": [
+        "תשלום",
+        "תשלומים",
+        "אשראי",
+        "ביט",
+        "מקדמה"
+      ]
+    },
+    {
+      "q": "מה מדיניות הביטולים?",
+      "answer": "ביטול עד 48 שעות מראש — החזר מלא של המקדמה. פחות מזה — המקדמה נשמרת כזיכוי לתאריך חדש.",
+      "tags": [
+        "מדיניות",
+        "ביטולים",
+        "מקדמה",
+        "החזר"
+      ]
+    }
+  ],
+  "qualification": [
+    {
+      "id": "type",
+      "question": "איזה סוג צילומים מעניין אותך? (תדמית, משפחה, או משהו אחר)",
+      "required": true,
+      "weight": 2,
+      "highValueAnswers": [
+        "תדמית",
+        "עסקי",
+        "מסחרי"
+      ]
+    },
+    {
+      "id": "when",
+      "question": "לאיזה תאריך בערך מכוונים?",
+      "required": false,
+      "weight": 1,
+      "highValueAnswers": [
+        "החודש",
+        "דחוף",
+        "השבוע"
+      ]
+    }
+  ],
+  "guardrails": {
+    "extraDecline": null,
+    "extraBlockedTopics": []
+  },
+  "escalation": {
+    "notifyPhones": [
+      "972501234567"
+    ],
+    "extraTriggers": [
+      "תלונה"
+    ]
+  }
+}

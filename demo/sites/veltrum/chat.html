@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>הסטודיו של נועה — צילום · דמו וואטסאפ</title>
+  <link rel="stylesheet" href="chat.css">
+  <style>:root { --accent: #4f46e5; --accent-dark: #3730a3; }</style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="chat-header">
+      <div class="avatar" id="avatar">💬</div>
+      <div class="chat-title">
+        <h1 id="biz-name">טוען…</h1>
+        <div class="status">מקוון · מענה מיידי · דמו</div>
+      </div>
+      <button class="icon-btn" id="panel-toggle" title="מאחורי הקלעים" aria-label="מאחורי הקלעים">
+        🎛<span class="badge" id="panel-badge"></span>
+      </button>
+    </header>
+
+    <main class="messages" id="messages" aria-live="polite"></main>
+
+    <div class="faq-strip" id="faq-strip"></div>
+
+    <form class="composer" id="composer">
+      <input id="msg-input" type="text" placeholder="הקלדת הודעה…" autocomplete="off" enterkeyhint="send">
+      <button class="send-btn" type="submit" aria-label="שליחה"><span>➤</span></button>
+    </form>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="panel-backdrop" id="panel-backdrop"></div>
+    <aside class="panel" aria-label="מאחורי הקלעים">
+      <div class="panel-head">
+        <h2>🎛 מאחורי הקלעים — מה העסק רואה</h2>
+        <button class="reset-btn" id="reset-btn" type="button">איפוס דמו 🔄</button>
+      </div>
+      <div class="panel-body" id="panel-body"></div>
+    </aside>
+  </div>
+
+  <script src="agent.js"></script>
+  <script src="chat.js"></script>
+</body>
+</html>
