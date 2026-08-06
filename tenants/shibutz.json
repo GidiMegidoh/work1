@@ -69,8 +69,8 @@
     "defaultServiceId": "demo"
   },
   "calendar": {
-    "provider": "memory",
-    "calendarId": null,
+    "provider": "google",
+    "calendarId": "gideon.brosilow@gmail.com",
     "additionalBusyCalendars": []
   },
   "whatsapp": {
