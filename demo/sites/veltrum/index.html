@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ולטרום — הדגמת שיבוץ</title>
+  <meta name="description" content="ולטרום — הדגמת שיבוץ — קביעת תורים מהירה בוואטסאפ">
+  <link rel="stylesheet" href="site.css">
+  <style>:root { --accent: #4f46e5; --accent-dark: #3730a3; --accent-soft: color-mix(in srgb, #4f46e5 12%, white); }</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="container">
+      <span class="emoji">📅</span>
+      <h1>ולטרום — הדגמת שיבוץ</h1>
+      <p>קובעים תור בהודעה אחת — עונים לך בוואטסאפ תוך שניות, גם עכשיו.</p>
+      <button class="cta" data-open-chat>💬 דברו איתנו בוואטסאפ</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="services">
+      <h2>📅 השירותים שלנו</h2>
+      <div class="services">
+      <div class="service-card">
+        <div>
+          <div class="name">פגישת ייעוץ והכרות</div>
+          <div class="dur">כ-30 דק'</div>
+        </div>
+        <div class="price">0 ₪</div>
+      </div>
+      <div class="service-card">
+        <div>
+          <div class="name">צילומי תדמית</div>
+          <div class="dur">כ-90 דק'</div>
+        </div>
+        <div class="price">900 ₪</div>
+      </div>
+      <div class="service-card">
+        <div>
+          <div class="name">צילומי משפחה</div>
+          <div class="dur">כ-60 דק'</div>
+        </div>
+        <div class="price">750 ₪</div>
+      </div>
+      </div>
+      
+    </section>
+
+    <section id="hours">
+      <h2>🕘 שעות פעילות</h2>
+      <table class="hours-table">
+        <tr data-day="0"><td>יום ראשון</td><td>09:00–17:00</td></tr>
+        <tr data-day="1"><td>יום שני</td><td>09:00–17:00</td></tr>
+        <tr data-day="2"><td>יום שלישי</td><td>09:00–17:00</td></tr>
+        <tr data-day="3"><td>יום רביעי</td><td>12:00–20:00</td></tr>
+        <tr data-day="4"><td>יום חמישי</td><td>09:00–17:00</td></tr>
+        <tr data-day="5"><td>יום שישי</td><td>08:00–12:00</td></tr>
+        <tr data-day="6"><td>יום שבת</td><td class="closed">סגור</td></tr>
+      </table>
+    </section>
+
+    <section id="faq">
+      <h2>❓ שאלות נפוצות</h2>
+      <div class="faq">
+      <details>
+        <summary>איך מגיעים ואיפה חונים?</summary>
+        <div class="answer">מתחם התחנה, רחוב האומנים 3, קומה 2. חניה חופשית בשפע בתוך המתחם.</div>
+      </details>
+      <details>
+        <summary>תוך כמה זמן מקבלים את התמונות?</summary>
+        <div class="answer">גלריה מעוצבת ומוכנה תוך 7 ימי עסקים, עם קישור להורדה באיכות מלאה.</div>
+      </details>
+      <details>
+        <summary>אילו אמצעי תשלום מקבלים?</summary>
+        <div class="answer">אשראי, ביט, פייבוקס ומזומן. שריון תאריך במקדמה של 30%.</div>
+      </details>
+      <details>
+        <summary>מה מדיניות הביטולים?</summary>
+        <div class="answer">ביטול עד 48 שעות מראש — החזר מלא של המקדמה. פחות מזה — המקדמה נשמרת כזיכוי לתאריך חדש.</div>
+      </details>
+      </div>
+    </section>
+
+    <section id="contact">
+      <h2>📍 יצירת קשר והגעה</h2>
+      <div class="contact-card">
+        <div>📍 רחוב האומנים 3, קומה 2, מתחם התחנה, באר שבע. חניה חופשית במתחם.</div>
+        <div>📞 054-5559988</div>
+        <div>💳 אשראי, ביט, פייבוקס ומזומן.</div>
+        <div>ℹ️ ביטול עד 48 שעות מראש — החזר מלא של המקדמה.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    עמוד דמו · ולטרום — הדגמת שיבוץ · נבנה עם שיבוץ — סוכן WhatsApp בעברית
+  </footer>
+
+  <button class="chat-fab" data-open-chat aria-label="פתיחת צ'אט">
+    💬<span class="hint">יש שאלה? דברו איתנו 👋</span>
+  </button>
+
+  <div class="chat-overlay" id="chat-overlay">
+    <div class="chat-frame-wrap">
+      <button class="chat-close" id="chat-close" aria-label="סגירה">✕</button>
+      <iframe title="צ'אט ולטרום — הדגמת שיבוץ" data-src="chat.html?embedded=1"></iframe>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var overlay = document.getElementById('chat-overlay');
+      var frame = overlay.querySelector('iframe');
+      document.querySelectorAll('[data-open-chat]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (!frame.src) frame.src = frame.dataset.src; // טעינה עצלה — שיחה חדשה מבודדת
+          overlay.classList.add('open');
+        });
+      });
+      document.getElementById('chat-close').addEventListener('click', function () {
+        overlay.classList.remove('open');
+      });
+      // הדגשת היום הנוכחי בטבלת השעות
+      var row = document.querySelector('tr[data-day="' + new Date().getDay() + '"]');
+      if (row) row.classList.add('today');
+    })();
+  </script>
+</body>
+</html>

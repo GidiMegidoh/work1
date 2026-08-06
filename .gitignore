@@ -5,3 +5,4 @@ npm-debug.log*
 test/transcripts/
 demo/sites/test-dental/
 tenants/redteam-legal.json
+outreach/send-log.json

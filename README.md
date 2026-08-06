@@ -62,6 +62,23 @@ npm test                       # 6 בדיקות הקבלה + שומר הרשת
 - הסוכן רץ בדפדפן, כך שכל טאב הוא שיחה מבודדת, והאתר שנוצר ניתן לאירוח
   סטטי בכל מקום. הקריאה היחידה לרשת: טעינת `tenant.json`.
 
+## 📣 שליחת דמו לפרוספקט (WhatsApp דרך Twilio)
+
+ערוץ מכירות נפרד מהדמו עצמו — יושב ב-`outreach/` ולא נסרק על-ידי שומר
+הרשת (הדמו נשאר בלי רשת; זה כלי של המפעיל).
+
+```bash
+cp .env.example .env               # מלאו TWILIO_ACCOUNT_SID/TOKEN + DEMO_URL
+npm run send-demo -- +972501234567 "היי דנה, הנה הדמו שדיברנו עליו"
+npm run send-demo -- --log         # מי כבר קיבל דמו
+npm run send-demo:server           # POST /send-demo על פורט 3100
+```
+
+ההודעה שנשלחת = הטקסט שלכם + קישור הדמו (`DEMO_URL`) + קריאה לפעולה.
+כל שליחה נרשמת ב-`outreach/send-log.json` (לא נכנס ל-git). בלי
+credentials רץ במצב dry-run — מדפיס ורושם בלי לשלוח. ב-Sandbox של
+Twilio הפרוספקט צריך לשלוח `join <קוד>` פעם אחת לפני שיקבל הודעות.
+
 ## 🗂 קונפיגורציית טננט
 
 `tenants/_template.json` הוא הסכמה + דוגמה מלאה. השדות המרכזיים:
@@ -101,6 +118,7 @@ src/demo/build-site.js  ← מחולל האתר הסטטי
 src/demo/assets/        ← נגן הצ'אט (HTML/CSS/JS)
 src/presets/            ← preset מלא לכל ורטיקל
 tenants/                ← קונפיגורציות טננטים (_template.json = סכמה)
+outreach/               ← שליחת דמו לפרוספקטים ב-WhatsApp (Twilio, מחוץ לדמו)
 demo/sites/<slug>/      ← פלט סטטי לאירוח
 test/                   ← בדיקות קבלה + שומר רשת
 ```
