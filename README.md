@@ -1,142 +1,97 @@
-# 🤖 בוט WhatsApp לקביעת תורים — דמו
+# WhatsApp Appointment Bot
 
-בוט WhatsApp לקביעת תורים במרפאה, בנוי על **Node.js + Express + Twilio**.
-דמו ללקוח — פשוט, ללא DB, מוכן להרצה תוך דקה.
+A demo WhatsApp bot for booking medical clinic appointments, in Hebrew. Patients message the clinic's WhatsApp number, and the bot walks them through a short conversation — name → time slot → confirmation — then books the appointment and schedules a reminder message.
 
----
+Built as a demo: appointments live in a JSON file, time slots are hardcoded, and the whole thing runs without any Twilio credentials in a local "demo mode".
 
-## ⚡ התחלה מהירה
+## What it does
+
+- Understands Hebrew free-text intents (book / cancel / help / greeting) via keyword matching, with niqqud stripping and Hebrew number-word parsing ("אחת", "שתיים"…)
+- Runs a per-user conversation state machine: `IDLE → AWAITING_NAME → AWAITING_SLOT → AWAITING_CONFIRM → booked`
+- Books into one of four hardcoded slots (two doctors) and persists to `data/appointments.json`
+- Sends a delayed reminder message after booking (1 minute by default, for demo purposes)
+- Works with the Twilio WhatsApp Sandbox for real WhatsApp messages, or entirely offline via a CLI/HTTP simulator
+
+## Tech stack
+
+- **Runtime:** Node.js (CommonJS)
+- **Web server:** Express 4
+- **WhatsApp/SMS:** Twilio SDK 5 (WhatsApp Sandbox; TwiML replies inbound, REST API for reminders)
+- **Config:** dotenv
+- **Storage:** flat JSON file (`data/appointments.json`) + in-memory session `Map` — no database
+
+## Getting started
 
 ```bash
-# 1. התקנת תלויות
 npm install
-
-# 2. הגדרות
-cp .env.example .env      # ערכו את הקובץ (אפשר גם להשאיר ריק לדמו מקומי)
-
-# 3. הרצה
-npm start
+cp .env.example .env   # optional — everything has defaults
+npm start              # or: npm run dev (auto-restart on file changes)
 ```
 
-השרת עולה על `http://localhost:3000`.
+### Try it without Twilio
 
-### בדיקה מיידית — בלי Twilio בכלל
+No credentials needed — without them the bot runs in demo mode and prints outbound messages to the console.
+
+Interactive terminal chat:
 
 ```bash
 npm run demo
 ```
 
-נפתחת שיחה בטרמינל מול אותה לוגיקה בדיוק. כתבו `אני רוצה תור` ולכו עם הזרימה.
-התזכורת תודפס לקונסול אחרי דקה.
-
-או דרך HTTP:
+Or simulate a WhatsApp message over HTTP:
 
 ```bash
-curl -X POST localhost:3000/simulate \
-  -H 'Content-Type: application/json' \
-  -d '{"from":"whatsapp:+972500000000","body":"אני רוצה תור"}'
+curl -X POST http://localhost:3000/simulate \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "whatsapp:+972500000000", "message": "שלום"}'
 ```
 
----
+### Connect real WhatsApp (Twilio Sandbox)
 
-## 📱 חיבור ל-Twilio WhatsApp Sandbox
+1. Create a Twilio account and open the WhatsApp Sandbox (Messaging → Try it out → Send a WhatsApp message).
+2. Join the sandbox from your phone by sending the join code to the sandbox number (+1 415 523 8886).
+3. Put your `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN` in `.env`.
+4. Expose your local server: `npx ngrok http 3000`.
+5. Set the sandbox webhook ("When a message comes in") to `https://<your-ngrok-domain>/whatsapp`, method POST.
+6. `npm start` and message the sandbox number from WhatsApp.
 
-1. היכנסו ל־[Twilio Console](https://console.twilio.com) → **Messaging → Try it out → Send a WhatsApp message**.
-2. שלחו מהנייד שלכם את קוד ההצטרפות (למשל `join <two-words>`) למספר **+1 415 523 8886**.
-3. חשפו את השרת המקומי לאינטרנט:
-   ```bash
-   npx ngrok http 3000
-   ```
-4. בלשונית **Sandbox settings**, בשדה **WHEN A MESSAGE COMES IN**, הזינו:
-   ```
-   https://<your-ngrok-id>.ngrok-free.app/whatsapp     [POST]
-   ```
-5. מלאו ב-`.env` את `TWILIO_ACCOUNT_SID` ו-`TWILIO_AUTH_TOKEN` (נדרשים כדי שהתזכורת היוצאת תישלח).
-6. שלחו `אני רוצה תור` בוואטסאפ — הבוט עונה.
+## Endpoints
 
-> **חשבון אמיתי (לא Sandbox)?** אותו קוד בדיוק — רק החליפו את
-> `TWILIO_WHATSAPP_NUMBER` למספר ה-WhatsApp Sender המאושר שלכם.
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/whatsapp` | Twilio webhook — incoming WhatsApp messages (returns TwiML) |
+| POST | `/simulate` | Test endpoint — JSON in/out, no Twilio needed |
+| GET | `/appointments` | List booked appointments |
+| GET | `/` | Health check (Twilio connection status, counts) |
 
----
+## Configuration
 
-## 💬 זרימת השיחה
+All variables are optional and documented in `.env.example`:
 
-| # | מטופל | בוט |
-|---|-------|-----|
-| 1 | `אני רוצה תור` | מבקש שם מלא |
-| 2 | `ישראל ישראלי` | מציג 4 מועדים פנויים |
-| 3 | `2` | מבקש אישור למועד שנבחר |
-| 4 | `כן` | ✅ מאשר, שומר ל-JSON, שולח אסמכתא |
-| 5 | *(אחרי דקה)* | ⏰ תזכורת "התור שלך מחר" |
+| Variable | Default | Purpose |
+|---|---|---|
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` | — | Twilio credentials; without them the bot runs in demo mode |
+| `TWILIO_WHATSAPP_NUMBER` | `whatsapp:+14155238886` | Sender number (sandbox default) |
+| `PORT` | `3000` | HTTP port |
+| `CLINIC_NAME` | `מרפאת ד"ר כהן` | Clinic name used in messages |
+| `REMINDER_DELAY_MS` | `60000` | Delay before the reminder message |
+| `VALIDATE_TWILIO_SIGNATURE` | `false` | Verify webhook signatures (requires `PUBLIC_URL`) |
+| `PUBLIC_URL` | — | Public base URL, needed only for signature validation |
 
-**מילות מפתח שמזוהות:**
-
-- קביעת תור — `תור`, `אני רוצה תור`, `הזמנה`, `לקבוע`, `פגישה`, `appointment`
-- ביטול התהליך — `ביטול`, `בטל`, `עצור`
-- תפריט — `עזרה`, `תפריט`
-
----
-
-## 🔌 נקודות קצה
-
-| Method | Path | תיאור |
-|--------|------|-------|
-| `POST` | `/whatsapp` | הוובהוק של Twilio (מחזיר TwiML) |
-| `POST` | `/simulate` | סימולציית הודעה ב-JSON — לבדיקות |
-| `GET` | `/appointments` | כל התורים שנקבעו |
-| `GET` | `/` | בדיקת בריאות + סטטוס חיבור ל-Twilio |
-
----
-
-## 📂 מבנה הפרויקט
+## Project layout
 
 ```
-bot.js                    ← כל הלוגיקה: וובהוק, זיהוי כוונה, מצב שיחה, תזכורת
-demo-cli.js               ← דמו בטרמינל, בלי Twilio
-.env.example              ← דוגמת הגדרות
-data/appointments.json    ← התורים שנשמרו (נוצר אוטומטית)
+bot.js         # The entire application: config, storage, Hebrew intent
+               # detection, message templates, conversation state machine,
+               # Express server. Organized into 9 numbered sections.
+demo-cli.js    # Terminal REPL that drives the same state machine directly
+               # (imports handleIncomingMessage from bot.js) — no HTTP, no Twilio.
+data/          # Created at runtime; appointments.json lives here (gitignored).
+.env.example   # Documented template for all environment variables.
 ```
 
----
+To change the available appointment slots, edit `AVAILABLE_SLOTS` in `bot.js`.
 
-## ⚙️ משתני סביבה
+## Demo limitations
 
-| משתנה | ברירת מחדל | תיאור |
-|-------|-----------|-------|
-| `TWILIO_ACCOUNT_SID` | — | מזהה החשבון ב-Twilio |
-| `TWILIO_AUTH_TOKEN` | — | טוקן האימות |
-| `TWILIO_WHATSAPP_NUMBER` | `whatsapp:+14155238886` | מספר השולח (Sandbox כברירת מחדל) |
-| `PORT` | `3000` | פורט השרת |
-| `CLINIC_NAME` | `מרפאת ד"ר כהן` | שם המרפאה בהודעות |
-| `REMINDER_DELAY_MS` | `60000` | עיכוב התזכורת — דקה אחת בדמו |
-| `VALIDATE_TWILIO_SIGNATURE` | `false` | אימות חתימת Twilio על הוובהוק |
-| `PUBLIC_URL` | — | כתובת ציבורית, נדרשת רק לאימות חתימה |
-
-בלי `ACCOUNT_SID`/`AUTH_TOKEN` הבוט עדיין רץ במצב דמו — הודעות יוצאות
-(התזכורת) מודפסות לקונסול במקום להישלח.
-
----
-
-## 🎬 עריכת מועדי הזמינות
-
-הרשימה קשיחה לצורך הדמו. לשינוי — `AVAILABLE_SLOTS` ב-`bot.js`:
-
-```js
-const AVAILABLE_SLOTS = [
-  { id: 1, label: 'יום ראשון, 09:00', doctor: 'ד"ר כהן' },
-  ...
-];
-```
-
----
-
-## ⚠️ מה חסר לפרודקשן
-
-הקוד הזה נועד להדגמה. לפני עלייה לאוויר צריך:
-
-- **מסד נתונים** במקום JSON בזיכרון (Postgres / Mongo)
-- **תזכורות עמידות** — cron או תור משימות; `setTimeout` נעלם בהפעלה מחדש של השרת
-- **יומן אמיתי** במקום רשימת מועדים קשיחה, כולל נעילת מועד שנתפס
-- **אימות חתימת Twilio מופעל** (`VALIDATE_TWILIO_SIGNATURE=true`)
-- **פרטיות** — פרטי מטופלים הם מידע רפואי: הצפנה, מדיניות שמירה ומחיקה
-- לוגים, ניטור ו-rate limiting
+This is a demo, not a production system. Notably missing: a real database (a crash loses sessions; reminders are lost on restart since they're plain `setTimeout`s), slot locking (any number of patients can book the same slot), authentication on `/appointments` and `/simulate`, and medical-data privacy handling. Webhook signature validation exists but is off by default.
