@@ -1,0 +1,42 @@
+.
+|-- README.md
+|-- assets
+|   |-- GO-LIVE.md
+|   |-- chat-button.html
+|   |-- qr-veltrum.png
+|   `-- wa-link.md
+|-- demo
+|   |-- sites
+|   |   |-- demo-dental
+|   |   `-- shibutz
+|   `-- veltrum-demo.html
+|-- package-lock.json
+|-- package.json
+|-- repo-map.txt
+|-- src
+|   |-- cli
+|   |   |-- demo-new.js
+|   |   |-- demo-serve.js
+|   |   `-- sim.js
+|   |-- core
+|   |   `-- agent.js
+|   |-- demo
+|   |   |-- assets
+|   |   `-- build-site.js
+|   `-- presets
+|       |-- aesthetics.json
+|       |-- dental.json
+|       |-- fitness.json
+|       |-- general.json
+|       |-- legal.json
+|       `-- medical.json
+|-- tenants
+|   |-- _template.json
+|   |-- demo-dental.json
+|   |-- shibutz.json
+|   `-- test-dental.json
+`-- test
+    |-- network-guard.js
+    `-- run-probes.js
+
+14 directories, 26 files
