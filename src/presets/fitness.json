@@ -1,0 +1,45 @@
+{
+  "id": "preset-fitness",
+  "businessName": "סטודיו פיט־טיים",
+  "vertical": "fitness",
+  "language": "he",
+  "timezone": "Asia/Jerusalem",
+  "extraInfo": {
+    "address": "רחוב העצמאות 55 (כניסה מהחצר), ראשון לציון. חניה חופשית ברחוב.",
+    "phone": "052-5554422",
+    "paymentMethods": "אשראי, ביט והוראת קבע למנויים.",
+    "cancellationPolicy": "ביטול אימון עד 6 שעות מראש — ללא חיוב.",
+    "insurance": null
+  },
+  "hours": {
+    "sun": [["06:00", "12:00"], ["16:00", "22:00"]],
+    "mon": [["06:00", "12:00"], ["16:00", "22:00"]],
+    "tue": [["06:00", "12:00"], ["16:00", "22:00"]],
+    "wed": [["06:00", "12:00"], ["16:00", "22:00"]],
+    "thu": [["06:00", "12:00"], ["16:00", "21:00"]],
+    "fri": [["07:00", "13:00"]],
+    "sat": []
+  },
+  "closedDates": [],
+  "services": [
+    { "id": "intro", "name": "אימון היכרות", "aliases": ["היכרות", "ניסיון", "אימון ניסיון", "שיעור ניסיון"], "durationMinutes": 45, "price": 90, "prep": "להגיע עם בגדי ספורט, נעליים סגורות ובקבוק מים." },
+    { "id": "personal", "name": "אימון אישי", "aliases": ["אישי", "אימון", "מאמן"], "durationMinutes": 60, "price": 220, "prep": null },
+    { "id": "pilates", "name": "שיעור פילאטיס מכשירים", "aliases": ["פילאטיס", "מכשירים", "רפורמר"], "durationMinutes": 55, "price": 80, "prep": null }
+  ],
+  "priceDisclaimer": null,
+  "booking": { "minLeadTimeMinutes": 60, "bufferMinutes": 5, "horizonDays": 7, "maxSlotsPerReply": 6, "defaultServiceId": "intro" },
+  "calendar": { "provider": "memory", "calendarId": null, "additionalBusyCalendars": [] },
+  "whatsapp": { "phoneNumberId": null },
+  "faq": [
+    { "q": "איך מגיעים ואיפה חונים?", "answer": "העצמאות 55, הכניסה מהחצר האחורית. חניה חופשית ברחוב — בשעות הבוקר יש שפע מקומות.", "tags": ["חניה", "חנייה", "להגיע", "הגעה", "כתובת", "איפה", "מיקום"] },
+    { "q": "מה להביא לאימון?", "answer": "בגדי ספורט נוחים, נעליים סגורות, מגבת ובקבוק מים. לפילאטיס — גרביים עם סוליית גומי.", "tags": ["להביא", "ציוד", "בגדים", "נעליים", "מגבת", "גרביים"] },
+    { "q": "כמה עולה מנוי חודשי?", "answer": "מנוי חודשי חופשי — 390 ₪. מנוי בוקר (עד 12:00) — 290 ₪. מקפיאים בחינם עד חודש בשנה.", "tags": ["מנוי", "חודשי", "מנויים", "הקפאה"] },
+    { "q": "אילו אמצעי תשלום מקבלים?", "answer": "אשראי, ביט והוראת קבע למנויים.", "tags": ["תשלום", "תשלומים", "אשראי", "ביט"] }
+  ],
+  "qualification": [
+    { "id": "goal", "question": "מה המטרה שלך? (חיטוב, כוח, ליווי אישי, או משהו אחר)", "required": true, "weight": 2, "highValueAnswers": ["ליווי אישי", "אימון אישי", "ירידה במשקל"] },
+    { "id": "exp", "question": "מתאמנ/ת כיום או חוזר/ת אחרי הפסקה?", "required": false, "weight": 1, "highValueAnswers": ["הפסקה", "מתחיל"] }
+  ],
+  "guardrails": { "extraDecline": null, "extraBlockedTopics": [] },
+  "escalation": { "notifyPhones": ["972501234567"], "extraTriggers": ["תלונה"] }
+}

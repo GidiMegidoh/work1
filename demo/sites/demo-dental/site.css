@@ -1,0 +1,219 @@
+/* האתר שנוצר לעסק — עמוד תדמית + בועת צ'אט צפה. RTL, מובייל תחילה. */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --accent: #0ea5e9;
+  --accent-dark: #0369a1;
+  --accent-soft: #e0f2fe;
+  --ink: #0f172a;
+  --ink-soft: #475569;
+  --bg: #f8fafc;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, "Heebo", "Arial Hebrew", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.container { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+
+/* ---- פתיח ---- */
+.hero {
+  background: linear-gradient(160deg, var(--accent-dark), var(--accent));
+  color: #fff;
+  padding: 52px 0 44px;
+  text-align: center;
+}
+.hero .emoji { font-size: 52px; display: block; margin-bottom: 10px; }
+.hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -.5px; }
+.hero p { font-size: 16.5px; opacity: .92; max-width: 34ch; margin: 10px auto 0; }
+.hero .cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 22px;
+  background: #fff;
+  color: var(--accent-dark);
+  font-weight: 700;
+  font-size: 16px;
+  padding: 13px 26px;
+  border-radius: 28px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 10px 30px rgba(0,0,0,.22);
+  transition: transform .12s;
+}
+.hero .cta:active { transform: scale(.97); }
+
+/* ---- מקטעים ---- */
+section { padding: 36px 0 6px; }
+section h2 {
+  font-size: 21px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+section h2::after {
+  content: "";
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(to left, var(--accent-soft), transparent);
+}
+
+/* שירותים */
+.services { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 560px) { .services { grid-template-columns: 1fr 1fr; } }
+.service-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.service-card .name { font-weight: 700; font-size: 15.5px; }
+.service-card .dur { color: var(--ink-soft); font-size: 13px; margin-top: 2px; }
+.service-card .price {
+  color: var(--accent-dark);
+  font-weight: 800;
+  font-size: 17px;
+  white-space: nowrap;
+}
+.disclaimer {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: var(--accent-soft);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+/* שעות */
+.hours-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0; }
+.hours-table td { padding: 9px 16px; font-size: 14.5px; border-bottom: 1px solid #f1f5f9; }
+.hours-table tr:last-child td { border-bottom: none; }
+.hours-table td:last-child { text-align: left; color: var(--ink-soft); direction: ltr; }
+.hours-table tr.today td { background: var(--accent-soft); font-weight: 700; color: var(--ink); }
+.hours-table td.closed { color: #b91c1c; }
+
+/* שאלות נפוצות */
+.faq details {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.faq summary {
+  padding: 13px 16px;
+  font-weight: 700;
+  font-size: 14.5px;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "＋"; color: var(--accent); font-size: 17px; }
+.faq details[open] summary::after { content: "－"; }
+.faq .answer { padding: 0 16px 14px; font-size: 14px; color: var(--ink-soft); }
+
+/* יצירת קשר */
+.contact-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 14.5px;
+}
+.contact-card div { margin: 6px 0; }
+
+footer {
+  margin-top: 40px;
+  padding: 22px 0 96px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* ---- בועת צ'אט צפה ---- */
+.chat-fab {
+  position: fixed;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  inset-inline-start: 18px;
+  z-index: 40;
+  width: 62px; height: 62px;
+  border-radius: 50%;
+  border: none;
+  background: #25d366;
+  color: #fff;
+  font-size: 30px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(37, 211, 102, .45);
+  display: grid; place-items: center;
+  animation: fab-pulse 2.4s infinite;
+}
+@keyframes fab-pulse {
+  0%, 100% { box-shadow: 0 10px 30px rgba(37,211,102,.45), 0 0 0 0 rgba(37,211,102,.35); }
+  50% { box-shadow: 0 10px 30px rgba(37,211,102,.45), 0 0 0 14px rgba(37,211,102,0); }
+}
+.chat-fab .hint {
+  position: absolute;
+  inset-inline-start: 70px;
+  bottom: 12px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border-end-start-radius: 2px;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0,0,0,.14);
+}
+
+/* חלון הצ'אט הצף */
+.chat-overlay {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, .55);
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.chat-overlay.open { display: flex; }
+.chat-frame-wrap {
+  position: relative;
+  width: min(100vw, 420px);
+  height: min(100dvh, 780px);
+}
+@media (max-width: 520px) { .chat-frame-wrap { width: 100vw; height: 100dvh; } }
+@media (min-width: 521px) {
+  .chat-frame-wrap { border-radius: 22px; overflow: hidden; box-shadow: 0 30px 90px rgba(0,0,0,.5); }
+}
+.chat-frame-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+.chat-close {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  inset-inline-end: 10px;
+  z-index: 2;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,.35);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}

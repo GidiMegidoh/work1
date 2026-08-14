@@ -1,5 +1,7 @@
 node_modules/
 .env
-data/appointments.json
 npm-debug.log*
 .DS_Store
+test/transcripts/
+demo/sites/test-dental/
+tenants/redteam-legal.json
