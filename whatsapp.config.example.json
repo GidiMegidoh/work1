@@ -1,0 +1,20 @@
+{
+  "_readme": [
+    "העתיקו ל-whatsapp.config.json ומלאו. הקובץ הזה מכיל רק ערכים שאינם סודות.",
+    "הסודות מגיעים ממשתני סביבה בלבד ולעולם לא מהקובץ הזה:",
+    "  WA_TOKEN        — טוקן הגישה (System User token קבוע, לא הזמני של 24 שעות)",
+    "  WA_VERIFY_TOKEN — מחרוזת שאתם ממציאים, ומזינים גם ב-Meta App Dashboard",
+    "  WA_APP_SECRET   — App Secret מתוך Meta App Dashboard → Settings → Basic",
+    "graphHost — המארח של Graph API, כפי שמופיע בתיעוד של Meta ובקובץ GO-LIVE-DEMO.md.",
+    "phoneNumberId — מועתק מ-WhatsApp Manager אחרי הוספת המספר (לא מספר הטלפון עצמו)."
+  ],
+  "graphHost": "",
+  "graphVersion": "v21.0",
+  "phoneNumberId": "",
+  "tenantSlug": "demo-dental",
+  "templateLanguage": "he",
+  "templates": {
+    "leadAlert": "lead_alert",
+    "followup": "followup_he"
+  }
+}
