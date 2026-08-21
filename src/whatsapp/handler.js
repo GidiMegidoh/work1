@@ -20,6 +20,7 @@ const crypto = require('crypto');
 const { createAgent } = require('../core/agent');
 const { parseWebhook } = require('./inbound');
 const { replyToMessage, alertToTemplates } = require('./outbound');
+const { createMeter } = require('./meter');
 
 const MAX_SEEN = 500;
 
@@ -47,6 +48,13 @@ function createWebhookHandler(opts) {
   const transport = opts.transport;
   const log = opts.logger || function () {};
   const agent = opts.agent || createAgent(tenant, opts.agentOpts || {});
+  const meter = opts.meter || createMeter();
+
+  // נספר רק אחרי transport.send שהצליח — מה שנמסר הוא מה ש-Meta מחייבת
+  function metered(waId, kind, note) {
+    const m = meter.record(waId, kind);
+    log(`📊 ${waId} ← ${kind}${note ? ` (${note})` : ''} · מצטבר בשיחה: ${m.reply} תשובות + ${m.template} תבניות`);
+  }
 
   const seen = new Set();
   const seenOrder = [];
@@ -137,6 +145,7 @@ function createWebhookHandler(opts) {
             try {
               const res = await transport.send(item.payload);
               sent.push(Object.assign({}, item, { result: res }));
+              metered(ev.waId, item.purpose === 'alert' ? 'template' : 'reply', 'משלוח חוזר');
             } catch (err) {
               log(`❌ משלוח חוזר נכשל: ${err.message}`);
               still.push(item);
@@ -173,6 +182,7 @@ function createWebhookHandler(opts) {
       try {
         const res = await transport.send(mapped.message);
         sent.push(Object.assign({}, replyItem, { result: res }));
+        metered(ev.waId, 'reply');
       } catch (err) {
         log(`❌ שליחת תשובה נכשלה: ${err.message}`);
         stash.push(replyItem);
@@ -186,6 +196,7 @@ function createWebhookHandler(opts) {
           try {
             const res = await transport.send(tpl);
             sent.push(Object.assign({}, alertItem, { result: res }));
+            metered(ev.waId, 'template', tpl.to);
           } catch (err) {
             log(`❌ שליחת התראה ל-${tpl.to} נכשלה: ${err.message}`);
             stash.push(alertItem);
@@ -205,7 +216,7 @@ function createWebhookHandler(opts) {
     return { status: 200, body: 'EVENT_RECEIVED', sent, events };
   }
 
-  return { verify, receive, agent, verifySignature };
+  return { verify, receive, agent, verifySignature, meter };
 }
 
 module.exports = { createWebhookHandler, verifySignature, safeEqual };

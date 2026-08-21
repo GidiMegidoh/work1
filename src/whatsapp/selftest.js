@@ -10,6 +10,7 @@
  *   3. "נציג"                → תבנית lead_alert אל escalation.notifyPhones
  *   4. אימות חתימה           → חתימה תקינה עוברת, גוף שהשתנה נדחה
  *   5. משלוח חוזר של Meta    → אותו wamid פעמיים = שליחה אחת
+ *   9. מונה שליחות לפי שיחה  → reply מול template, נספר = נמסר
  */
 
 'use strict';
@@ -258,8 +259,84 @@ async function main() {
   const try3 = await h2.receive(rawR, { 'x-hub-signature-256': sign(rawR) });
   check(flaky.sent.length === 1, 'משלוח חוזר נוסף אחרי מסירה מוצלחת — אפס שליחות כפולות');
 
+  // ---- 9. מונה השליחות: ספירה מדויקת לכל שיחה (הבסיס לחיוב פר-הודעה) ----
+  console.log('');
+  console.log('-'.repeat(72));
+  console.log('9. מונה שליחות לפי שיחה — reply מול template');
+  const push = (h, envelope) => {
+    const raw = Buffer.from(JSON.stringify(envelope), 'utf8');
+    return h.receive(raw, { 'x-hub-signature-256': sign(raw) });
+  };
+  const freshHandler = (t) => createWebhookHandler({
+    config: cfg, tenant, transport: t || createSimTransport(cfg),
+    agentOpts: { now: '2026-08-23T09:00' }, logger: () => {},
+  });
+
+  // 9א. שיחת הזמנה תסריטאית — 5 הודעות נכנסות → בדיוק 5 תשובות, 0 תבניות
+  //     (שאלת האיכות המשולבת חוסכת סבב שלם; שימור הדירוג נבדק כאן וב-9א2)
+  const hBook = freshHandler();
+  const b1 = await push(hBook, textEnvelope('אני רוצה לקבוע תור לניקוי'));
+  const bookRows = b1.sent[0].payload.interactive.action.sections[0].rows;
+  const bookSlot = bookRows.find((r) => r.id.indexOf('slot:') === 0);
+  await push(hBook, buttonEnvelope(bookSlot.id, bookSlot.title));
+  await push(hBook, textEnvelope('דנה אבידן'));
+  await push(hBook, textEnvelope('בדיקה שגרתית'));
+  const bDone = await push(hBook, textEnvelope('כן'));
+  check(/התור נקבע/.test(JSON.stringify(bDone.sent)), 'שיחת ההזמנה הסתיימה ב"התור נקבע"');
+  check(/איך מגיעים/.test(JSON.stringify(bDone.sent)), 'אישור ההזמנה מקופל: כולל כתובת + חניה מהטננט');
+  const mBook = hBook.meter.get(WA_ID);
+  check(mBook.reply === 5, `הזמנה מלאה: בדיוק 5 תשובות שירות (נספרו ${mBook.reply})`);
+  check(mBook.template === 0, `הזמנה מלאה: אפס תבניות (נספרו ${mBook.template})`);
+  const coldLead = hBook.agent.getState().leads[0];
+  check(!!coldLead && coldLead.hot === false,
+    '"בדיקה שגרתית" בתשובה המשולבת → ליד לא-חם, כמו בשאלות הנפרדות');
+
+  // 9א2. אותה הזמנה עם תשובת כאב — הדירוג החם שרד את איחוד שאלות האיכות
+  const hHot = freshHandler();
+  const h1 = await push(hHot, textEnvelope('אני רוצה לקבוע תור לניקוי'));
+  const hotRows = h1.sent[0].payload.interactive.action.sections[0].rows;
+  const hotSlot = hotRows.find((r) => r.id.indexOf('slot:') === 0);
+  await push(hHot, buttonEnvelope(hotSlot.id, hotSlot.title));
+  await push(hHot, textEnvelope('יואב לוי'));
+  await push(hHot, textEnvelope('כואב לי מאוד'));
+  await push(hHot, textEnvelope('כן'));
+  const hotLead = hHot.agent.getState().leads[0];
+  check(!!hotLead && hotLead.hot === true,
+    '"כואב" בתשובה המשולבת → ליד חם (score>=2), בדיוק כמו שאלת הכאב הנפרדת');
+  check(hHot.meter.get(WA_ID).reply === 5, 'גם שיחת הליד החם: בדיוק 5 תשובות');
+
+  // 9ב. הסלמת "נציג" — תשובה אחת ללקוח + תבנית אחת לכל נמען, בנפרד
+  const hRep = freshHandler();
+  await push(hRep, textEnvelope('נציג'));
+  const mRep = hRep.meter.get(WA_ID);
+  check(mRep.reply === 1, `"נציג": בדיוק תשובת שירות אחת (נספרו ${mRep.reply})`);
+  check(mRep.template === tenant.escalation.notifyPhones.length,
+    `"נציג": בדיוק תבנית אחת לכל נמען ב-notifyPhones (נספרו ${mRep.template})`);
+
+  // 9ג. שלמות הספירה מול כשל מסירה: מה שנספר = מה שנמסר (זה מה ש-Meta מחייבת)
+  let failOnce9 = true;
+  const flaky9 = {
+    mode: 'sim', sent: [],
+    send(payload) {
+      if (failOnce9) { failOnce9 = false; return Promise.reject(new Error('HTTP 503 מ-Graph')); }
+      flaky9.sent.push(payload);
+      return Promise.resolve({ messages: [{ id: 'wamid.RETRY9' }] });
+    },
+  };
+  const hFlaky = freshHandler(flaky9);
+  const raw9 = Buffer.from(JSON.stringify(textEnvelope('מחירון', 'wamid.METER001')), 'utf8');
+  await hFlaky.receive(raw9, { 'x-hub-signature-256': sign(raw9) });
+  check(hFlaky.meter.get(WA_ID).total === 0, 'כשל מסירה: שום דבר לא נמסר → שום דבר לא נספר');
+  await hFlaky.receive(raw9, { 'x-hub-signature-256': sign(raw9) });
+  check(hFlaky.meter.get(WA_ID).reply === 1, 'משלוח חוזר מוצלח: נספרה בדיוק תשובה אחת');
+  await hFlaky.receive(raw9, { 'x-hub-signature-256': sign(raw9) });
+  check(hFlaky.meter.get(WA_ID).reply === 1, 'משלוח חוזר נוסף: הספירה נשארת 1 — נספר = נמסר');
+
   // ---- סיכום ----
   console.log('\n' + '='.repeat(72));
+  console.log(handler.meter.summary());
+  console.log(hBook.meter.summary());
+  console.log('='.repeat(72));
   console.log(`  סך המטענים שהוכנו לשליחה: ${transport.sent.length} · קריאות רשת בפועל: 0`);
   console.log(failures ? `  [FAIL] ${failures} בדיקות נכשלו` : '  [PASS] כל הבדיקות עברו');
   console.log('='.repeat(72));

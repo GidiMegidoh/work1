@@ -673,6 +673,8 @@
         '• על שם: ' + b.customerName + '\n' +
         '• מס\' אסמכתא: ' + b.id;
       if (svc.prep) text += '\n\nלתשומת לבך: ' + svc.prep;
+      var info = tenant.extraInfo || {};
+      if (info.address) text += '\n\n📍 איך מגיעים: ' + info.address;
       text += '\n\nאפשר לכתוב לי "לשנות תור" או "לבטל תור" בכל שלב.';
       return reply(text);
     }

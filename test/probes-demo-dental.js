@@ -67,7 +67,7 @@ module.exports = function buildDemoProbes({ assert, findReply, slotButtonsOf, sl
     slug: SLUG,
     file: 'probe-demo-3',
     inputs: [
-      'אני רוצה לקבוע תור לניקוי', '1', 'דנה כהן', 'בדיקה שגרתית', 'לא כואב', 'כן',
+      'אני רוצה לקבוע תור לניקוי', '1', 'דנה כהן', 'בדיקה שגרתית', 'כן',
       'אני רוצה להזיז את התור', '2', 'כן',
       'אני רוצה לבטל את התור', 'כן',
     ],
