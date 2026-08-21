@@ -19,15 +19,15 @@ const SLUG = 'test-dental';
 const NOW = '2026-08-05T08:00:00'; // יום רביעי בבוקר
 const tenant = JSON.parse(fs.readFileSync(path.join(ROOT, 'tenants', `${SLUG}.json`), 'utf8'));
 
-/** מזהה את שורת הקריאה בקובץ הזה — לדיווח כישלונות עם מספרי שורות. */
+/** מזהה את שורת הקריאה בקבצי הבדיקות — לדיווח כישלונות עם מספרי שורות. */
 function here() {
   const line = new Error().stack.split('\n')[3] || '';
-  const m = /run-probes\.js:(\d+)/.exec(line);
-  return m ? `test/run-probes.js:${m[1]}` : 'test/run-probes.js';
+  const m = /((?:run-probes|probes-demo-dental)\.js):(\d+)/.exec(line);
+  return m ? `test/${m[1]}:${m[2]}` : 'test/run-probes.js';
 }
 
-function runSim(inputs) {
-  const res = spawnSync(process.execPath, ['src/cli/sim.js', SLUG, '--now', NOW, '--jsonl'], {
+function runSim(inputs, slug = SLUG) {
+  const res = spawnSync(process.execPath, ['src/cli/sim.js', slug, '--now', NOW, '--jsonl'], {
     cwd: ROOT,
     input: inputs.join('\n') + '\n',
     encoding: 'utf8',
@@ -45,13 +45,13 @@ function runSim(inputs) {
   return { exchanges, transcript: transcript.join('\n'), stderr: res.stderr };
 }
 
-/** האם מועד (ISO מקומי) נופל בתוך שעות הפעילות של הטננט ולא בתאריך סגור. */
-function slotWithinHours(iso, durationMinutes) {
+/** האם מועד (ISO מקומי) נופל בתוך שעות הפעילות של טננט נתון ולא בתאריך סגור. */
+function slotWithinHours(iso, durationMinutes, forTenant = tenant) {
   const dayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso);
   const d = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
-  if ((tenant.closedDates || []).includes(`${m[1]}-${m[2]}-${m[3]}`)) return false;
-  const ranges = tenant.hours[dayKeys[d.getDay()]] || [];
+  if ((forTenant.closedDates || []).includes(`${m[1]}-${m[2]}-${m[3]}`)) return false;
+  const ranges = forTenant.hours[dayKeys[d.getDay()]] || [];
   const startMin = d.getHours() * 60 + d.getMinutes();
   const endMin = startMin + durationMinutes;
   return ranges.some(([from, to]) => {
@@ -204,6 +204,10 @@ probes.push({
   },
 });
 
+// ---- בדיקות demo-dental: ששת תרחישי הקבלה של הטננט החי (probes-demo-dental.js) ----
+const buildDemoProbes = require('./probes-demo-dental.js');
+probes.push(...buildDemoProbes({ assert, findReply, slotButtonsOf, slotWithinHours }));
+
 // ---------------------------------------------------------------------------
 
 const outDir = path.join(__dirname, 'transcripts');
@@ -215,13 +219,13 @@ probes.forEach((probe, idx) => {
   const before = failures.length;
   let result;
   try {
-    result = runSim(probe.inputs);
+    result = runSim(probe.inputs, probe.slug);
     probe.check(result);
   } catch (err) {
     failures.push({ probe: probe.name, desc: `חריגה: ${err.message}`, where: 'test/run-probes.js' });
   }
   const probeFailures = failures.slice(before);
-  const file = path.join(outDir, `probe-${idx + 1}.txt`);
+  const file = path.join(outDir, `${probe.file || `probe-${idx + 1}`}.txt`);
   if (result) fs.writeFileSync(file, result.transcript, 'utf8');
   if (probeFailures.length) {
     failed += 1;

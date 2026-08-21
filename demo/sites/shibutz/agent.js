@@ -118,6 +118,9 @@
       'שעות קבלה', 'שעות הקבלה', 'מה השעות', 'מתי אתם פתוחים',
       'מתי פתוח', 'עד איזו שעה', 'עד איזה שעה', 'באילו שעות', 'באיזה שעות',
       'מתי עובדים', 'אתם עובדים', 'פתוחים', 'פתוח', 'פתוחה', 'סגור', 'סגורים'],
+    // "עובדים עם X" זו שאלת שיתוף-פעולה (קופות/ביטוחים), לא שאלת שעות —
+    // בלי ההחרגה "אתם עובדים עם כללית?" היה נתפס ב-'אתם עובדים' שמעל
+    HOURS_EXCLUDE: ['עובדים עם'],
     HANDOFF: ['נציג', 'נציגה', 'נציג שירות', 'בן אדם', 'בנאדם', 'אנושי', 'אנושית',
       'ייצוג אנושי', 'יצוג אנושי', 'לדבר עם מישהו', 'לדבר עם בן אדם',
       'שיחה טלפונית', 'שיחת טלפון', 'תתקשרו אליי', 'תתקשרו אלי', 'שיתקשרו',
@@ -129,12 +132,29 @@
     YES: ['כן', 'אישור', 'מאשר', 'מאשרת', 'אשר', 'אוקיי', 'אוקי', 'בסדר',
       'סבבה', 'יאללה', 'מעולה', 'סגור', 'מתאים', 'לאשר', 'בטח', 'כמובן'],
     NO: ['לא', 'לא מתאים', 'עזוב', 'עזבי', 'לא תודה'],
-    MORE: ['עוד', 'נוספים', 'אחרים', 'אחר', 'מאוחר יותר', 'מוקדם יותר', 'הבא'],
+    MORE: ['עוד', 'נוספים', 'אחרים', 'מאוחר יותר', 'מוקדם יותר', 'הבא'],
+    // "אחר" ונטיותיו רק כטוקן מדויק (בלי קילוף קידומות) — אחרת "מאחר"
+    // מקולף ל"אחר" ושאלת איחור באמצע בחירת מועד נבלעת כדפדוף
+    MORE_EXACT: ['אחר', 'אחרת', 'אחרים', 'אחרות'],
     MY_BOOKING: ['מתי התור', 'התור שלי', 'איזה תור יש לי', 'פרטי התור',
       'מה המועד שלי', 'לאיזו שעה התור', 'באיזו שעה התור', 'יש לי תור'],
     SKIP: ['דלג', 'לדלג', 'דלגי', 'הבא', 'לא משנה', 'העדף לא', 'מעדיף לא', 'מעדיפה לא'],
-    POLICY: ['מדיניות', 'ביטולים', 'קנס'],
+    POLICY: ['מדיניות', 'ביטולים', 'ביטול', 'דמי ביטול', 'קנס'],
   };
+
+  /** כוונת שעות פעילות — התאמה ל-KW.HOURS בלי אף ביטוי מוחרג. */
+  function wantsHours(norm, tokens) {
+    return !!textHasAny(norm, tokens, KW.HOURS) &&
+      !textHasAny(norm, tokens, KW.HOURS_EXCLUDE);
+  }
+
+  /** התאמת טוקן מדויקת — בלי קילוף קידומות ובלי סיומות ריבוי. */
+  function hasExactToken(tokens, kws) {
+    for (var i = 0; i < tokens.length; i++) {
+      if (kws.indexOf(tokens[i]) !== -1) return true;
+    }
+    return false;
+  }
 
   // ==========================================================================
   //  3. גדרות ורטיקל — לא ניתנות לכיבוי או ריכוך דרך הטננט
@@ -974,7 +994,7 @@
 
     function hasStrongIntent(norm, tokens) {
       return !!(textHasAny(norm, tokens, KW.PRICE) || textHasAny(norm, tokens, KW.CANCEL) ||
-        textHasAny(norm, tokens, KW.RESCHEDULE) || textHasAny(norm, tokens, KW.HOURS) ||
+        textHasAny(norm, tokens, KW.RESCHEDULE) || wantsHours(norm, tokens) ||
         textHasAny(norm, tokens, KW.BOOK));
     }
 
@@ -989,7 +1009,7 @@
         case STEPS.AWAITING_RESLOT: {
           var iso = matchOfferedSlot(session, norm, tokens);
           if (iso) return chooseSlot(session, iso);
-          if (textHasAny(norm, tokens, KW.MORE)) {
+          if (textHasAny(norm, tokens, KW.MORE) || hasExactToken(tokens, KW.MORE_EXACT)) {
             session.slotOffset += maxSlots;
             return offerSlots(session, null);
           }
@@ -1226,7 +1246,7 @@
         return startBooking(session, svc ? svc.id : null);
       }
 
-      if (textHasAny(norm, tokens, KW.HOURS)) {
+      if (wantsHours(norm, tokens)) {
         return reply(hoursText(), [{ id: 'menu:book', title: 'קביעת תור 📅' }]);
       }
 
